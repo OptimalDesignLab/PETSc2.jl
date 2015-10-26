@@ -1,4 +1,4 @@
-export PetscMat, PetscMatSetType, PetscSetUp, PetscMatSetValues, PetscMatAssemblyBegin, PetscMatAssemblyEnd, PetscMatSetSizes, PetscMatGetSize, PetscMatGetValues, PetscMatGetOwnershipRange, PetscMatXAIJSetPreallocation, PetscMatMPIAIJSetPreallocation, PetscMatSetFromOptions, PetscMatGetInfo, PetscMatMatMult, PetscMatNorm, PetscMatZeroEntries
+export PetscMat, PetscMatSetType, PetscSetUp, PetscMatSetValues, PetscMatAssemblyBegin, PetscMatAssemblyEnd, PetscMatSetSizes, PetscMatGetSize, PetscMatGetValues, PetscMatGetOwnershipRange, PetscMatXAIJSetPreallocation, PetscMatMPIAIJSetPreallocation, PetscMatSetFromOptions, PetscMatGetInfo, PetscMatMatMult, PetscMatNorm, PetscMatZeroEntries, PetscMatSetValuesBlocked, MatSetOption, MatCreateShell, MatShellSetOperation
 
 
 type PetscMat  <: AbstractArray{PetscScalar, 2}
@@ -17,6 +17,32 @@ type PetscMat  <: AbstractArray{PetscScalar, 2}
     return new(pobj)
   end
 end
+
+
+function MatCreateShell(arg1::MPI_Comm,arg2::Integer,arg3::Integer,arg4::Integer,arg5::Integer, arg6::Ptr{Void})
+  # arg6 is the user provided context
+    arg7 = Ref{Ptr{Void}}()
+    ccall((:MatCreateShell,petsc),PetscErrorCode,(MPI_Comm,PetscInt,PetscInt,PetscInt,PetscInt,Ptr{Void}, Ref{Ptr{Void}}),arg1,arg2,arg3,arg4,arg5,arg6,arg7)
+    return PetscMat(arg7[])
+end
+
+function MatShellSetOperation(arg1::PetscMat,arg2::MatOperation,arg3::Ptr{Void})
+# arg3 is a function pointer, and must have the signature:
+# void fname(Mat, vec, vec) for MATOP_MULT
+
+    ccall((:MatShellSetOperation,petsc),PetscErrorCode,(Ptr{Void},MatOperation,Ptr{Void}),arg1.pobj,arg2,arg3)
+end
+
+function MatShellGetContext(arg1::PetscMat)
+# get the user provided context for the matrix shell
+    arg2 = Ref{Ptr{Void}}()
+    ccall((:MatShellGEtContext,petsc),PetscErrorCode,(Ptr{Void},Ref{Ptr{Void}}),arg1.pobj,arg2)
+    return arg2[]  # turn it into a julia object here?
+end
+
+
+
+
 
   function PetscDestroy(vec::PetscMat)
     if (vec.pobj != 0)
@@ -94,6 +120,23 @@ end
 #    idj = idj
     return err
   end
+
+  function PetscMatSetValuesBlocked(mat::PetscMat, idi::Array{PetscInt}, idj::Array{PetscInt}, v::Array{PetscScalar}, flag::Integer)
+
+      err = ccall((:MatSetValuesBlocked, libpetsclocation), PetscErrorCode,(Ptr{Void},PetscInt,Ptr{PetscInt},PetscInt,Ptr{PetscInt},Ptr{PetscScalar}, Int32),mat.pobj, length(idi), idi, length(idj), idj, v,flag)
+
+      return err
+  end
+
+  function MatSetOption(mat::PetscMat,arg2::MatOption,arg3::PetscBool)
+      ierr = ccall((:MatSetOption, libpetsclocation),PetscErrorCode, (Ptr{Void},MatOption,PetscBool), mat.pobj, arg2, arg3)
+
+      if ierr != 0
+	println(STDERR, "Error: MatSetOption returned non zero exit status")
+      end
+  end
+
+
 
   function PetscMatAssemblyBegin(obj::PetscMat,flg::Integer)
     err = ccall( ( :MatAssemblyBegin,  libpetsclocation), PetscErrorCode,(Ptr{Void},Int32), obj.pobj,flg);
