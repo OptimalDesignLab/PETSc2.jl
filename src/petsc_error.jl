@@ -36,7 +36,7 @@ end
 # tell Petsc abut the Error handler
 cfunc = cfunction(error_handler, PetscErrorCode, (comm_type, Int32, Ptr{Uint8}, Ptr{Uint8}, PetscErrorCode, PetscErrorType, Ptr{Uint8}, Ptr{Void}) )
 ctx = C_NULL
-ierr = ccall( (:PetscPushErrorHandler, petsc), PetscErrorCode, (Ptr{Void}, Ptr{Void}), cfunc, ctx)
+#ierr = ccall( (:PetscPushErrorHandler, petsc), PetscErrorCode, (Ptr{Void}, Ptr{Void}), cfunc, ctx)
 
 
 function chkerrq(i::PetscErrorCode)

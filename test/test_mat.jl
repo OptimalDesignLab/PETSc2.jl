@@ -6,6 +6,7 @@ facts("\n   ---testing matrix functions---") do
   PetscMatSetSizes(A,sys_size,sys_size, PetscInt(comm_size*sys_size),PetscInt(comm_size*sys_size));
   PetscSetUp(A);
 
+  println("mat_type = ", MatGetType(A))
 
   B = PetscMat(comm)
   PetscMatSetType(B, "mpiaij")

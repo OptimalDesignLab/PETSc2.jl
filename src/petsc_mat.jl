@@ -1,4 +1,4 @@
-export PetscMat, PetscMatSetType, PetscSetUp, PetscMatSetValues, PetscMatAssemblyBegin, PetscMatAssemblyEnd, PetscMatSetSizes, PetscMatGetSize, PetscMatGetValues, PetscMatGetOwnershipRange, PetscMatXAIJSetPreallocation, PetscMatMPIAIJSetPreallocation, PetscMatSetFromOptions, PetscMatGetInfo, PetscMatMatMult, PetscMatNorm, PetscMatZeroEntries, PetscMatSetValuesBlocked, MatSetOption, MatCreateShell, MatShellSetOperation
+export PetscMat, PetscMatSetType, PetscSetUp, PetscMatSetValues, PetscMatAssemblyBegin, PetscMatAssemblyEnd, PetscMatSetSizes, PetscMatGetSize, PetscMatGetValues, PetscMatGetOwnershipRange, PetscMatXAIJSetPreallocation, PetscMatMPIAIJSetPreallocation, PetscMatSetFromOptions, PetscMatGetInfo, PetscMatMatMult, PetscMatNorm, PetscMatZeroEntries, PetscMatSetValuesBlocked, MatSetOption, MatCreateShell, MatShellSetOperation, MatShellGetContext, MatGetType
 
 
 type PetscMat  <: AbstractArray{PetscScalar, 2}
@@ -36,8 +36,14 @@ end
 function MatShellGetContext(arg1::PetscMat)
 # get the user provided context for the matrix shell
     arg2 = Ref{Ptr{Void}}()
-    ccall((:MatShellGEtContext,petsc),PetscErrorCode,(Ptr{Void},Ref{Ptr{Void}}),arg1.pobj,arg2)
+    ccall((:MatShellGetContext,petsc),PetscErrorCode,(Ptr{Void},Ref{Ptr{Void}}),arg1.pobj,arg2)
     return arg2[]  # turn it into a julia object here?
+end
+
+function MatGetType(arg1::PetscMat)
+    arg2 = Ref{Ptr{Uint8}}()
+    ccall((:MatGetType,petsc),PetscErrorCode,(Ptr{Void}, Ref{Ptr{Uint8}}),arg1.pobj,arg2)
+    return bytestring(arg2[])
 end
 
 
