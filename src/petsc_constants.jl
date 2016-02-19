@@ -82,7 +82,7 @@ global const libpetsc = Libdl.dlopen(libpetsclocation)
 typealias Petsc64bitInt Int64
 #typealias PetscBLASInt Int32
 #typealias PetscScalar Cint
-typealias PetscBool Uint32
+typealias PetscBool UInt32
 typealias PetscDataType Cint  # C enums are Int32
 
 typealias PetscLogDouble Cdouble
@@ -200,7 +200,7 @@ typealias PetscInt int_dtype
 
 
 # some useful type unions
-PetscInt_arr_or_null = Union(AbstractArray{PetscInt}, Ptr{Void})
+PetscInt_arr_or_null = Union{AbstractArray{PetscInt}, Ptr{Void}}
 
 #=
 const PETSC_PI = pi
@@ -421,7 +421,7 @@ global const KSP_CONVERGED_ITERATING = (Int32)(0)
 #
 # map values to string for printing
 export KSPConvergedReasonDict
-global const KSPConvergedReasonDict = Dict{KSPConvergedReason, ASCIIString} (
+global const KSPConvergedReasonDict = Dict{KSPConvergedReason, ASCIIString}(
  KSP_CONVERGED_RTOL_NORMAL => "Converged: RTol normal",
  KSP_CONVERGED_ATOL_NORMAL => "Converged: ATol normal",
  KSP_CONVERGED_RTOL => "Converged: RTol",
@@ -545,7 +545,7 @@ const MAT_OPTION_MAX = (Int32)(19)
 # end enum MatOption
 
 # begin enum MatOperation
-typealias MatOperation Uint32
+typealias MatOperation UInt32
 const MATOP_SET_VALUES = (UInt32)(0)
 const MATOP_GET_ROW = (UInt32)(1)
 const MATOP_RESTORE_ROW = (UInt32)(2)

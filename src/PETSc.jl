@@ -112,9 +112,9 @@ function PetscInitialize(args,filename,help)
     # = cstring(args[i])
   end
 #  ptrs = _jl_pre_exec(arr)
-#  err = ccall(Libdl.dlsym(libpetsc, :PetscInitializeNoPointers),Int32,(Int32,Ptr{Ptr{Uint8}},Ptr{Uint8},Ptr{Uint8}), length(ptrs), ptrs,cstring(filename),cstring(help));
+#  err = ccall(Libdl.dlsym(libpetsc, :PetscInitializeNoPointers),Int32,(Int32,Ptr{Ptr{UInt8}},Ptr{UInt8},Ptr{UInt8}), length(ptrs), ptrs,cstring(filename),cstring(help));
 
-  err = ccall( (:PetscInitializeNoPointers,  libpetsclocation),Int32,(Int32,Ptr{Ptr{Uint8}},Cstring,Cstring), length(arr), arr,filename,help);
+  err = ccall( (:PetscInitializeNoPointers,  libpetsclocation),Int32,(Int32,Ptr{Ptr{UInt8}},Cstring,Cstring), length(arr), arr,filename,help);
   return err
 end
 

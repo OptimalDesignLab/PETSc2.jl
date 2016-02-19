@@ -41,8 +41,8 @@ function MatShellGetContext(arg1::PetscMat)
 end
 
 function MatGetType(arg1::PetscMat)
-    arg2 = Ref{Ptr{Uint8}}()
-    ccall((:MatGetType,petsc),PetscErrorCode,(Ptr{Void}, Ref{Ptr{Uint8}}),arg1.pobj,arg2)
+    arg2 = Ref{Ptr{UInt8}}()
+    ccall((:MatGetType,petsc),PetscErrorCode,(Ptr{Void}, Ref{Ptr{UInt8}}),arg1.pobj,arg2)
     return bytestring(arg2[])
 end
 

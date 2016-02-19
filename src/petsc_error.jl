@@ -1,6 +1,6 @@
 # have Petsc report errors to Julia
 
-function error_handler(comm::comm_type, line::Int32, func::Ptr{Uint8}, file::Ptr{Uint8}, n::PetscErrorCode, p::PetscErrorType, mess::Ptr{Uint8}, ctx::Ptr{Void})
+function error_handler(comm::comm_type, line::Int32, func::Ptr{UInt8}, file::Ptr{UInt8}, n::PetscErrorCode, p::PetscErrorType, mess::Ptr{UInt8}, ctx::Ptr{Void})
 # receives the error call from Petsc
 
 func_string = bytestring(func)
@@ -34,7 +34,7 @@ return PetscErrorCode(0)
 end
 
 # tell Petsc abut the Error handler
-cfunc = cfunction(error_handler, PetscErrorCode, (comm_type, Int32, Ptr{Uint8}, Ptr{Uint8}, PetscErrorCode, PetscErrorType, Ptr{Uint8}, Ptr{Void}) )
+cfunc = cfunction(error_handler, PetscErrorCode, (comm_type, Int32, Ptr{UInt8}, Ptr{UInt8}, PetscErrorCode, PetscErrorType, Ptr{UInt8}, Ptr{Void}) )
 ctx = C_NULL
 #ierr = ccall( (:PetscPushErrorHandler, petsc), PetscErrorCode, (Ptr{Void}, Ptr{Void}), cfunc, ctx)
 
