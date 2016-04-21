@@ -14,7 +14,7 @@ fi
 # delete existing installation
 if [ -e ./$petsc_name ]
 then
-  echo "deleting extisting petsc installation in deps"
+  echo "deleting existing petsc installation in deps"
   rm -r ./$petsc_name
 fi
 
