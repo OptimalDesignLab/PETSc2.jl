@@ -8,7 +8,8 @@ echo "building PETSc in `pwd`"
 # get tarball if it is not present
 if [ ! -e ./$petsc_name$fmt ]
 then
-  wget http://ftp.mcs.anl.gov/pub/petsc/release-snapshots/$petsc_name$fmt
+  ./download.sh
+#  wget http://ftp.mcs.anl.gov/pub/petsc/release-snapshots/$petsc_name$fmt
 fi
 
 # delete existing installation
