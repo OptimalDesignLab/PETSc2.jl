@@ -8,7 +8,7 @@ type KSP
 
   function KSP(comm::MPI_Comm)  # constructor for KSP owned by the user
       ptr = Array(Ptr{Void}, 1)
-      ierr = ccall((:KSPCreate,petsc),PetscErrorCode,(comm_type, Ptr{Void}),comm.val, ptr)
+      ierr = ccall((:KSPCreate,petsc),PetscErrorCode,(comm_type, Ptr{Void}),comm, ptr)
       @assert(ierr == 0)
       obj = new(ptr[1])
 #      finalizer(obj, PetscDestroy)

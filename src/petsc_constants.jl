@@ -2,6 +2,8 @@
 # export names
 # do typealiases have to be exported?  I don't think so
 
+typealias comm_type MPI.CComm
+
 export PETSC_NULL, PETSC_IGNORE, PETSC_DECIDE, PETSC_DETERMINE, PETSCDEFAULT, PETSC_COMM_SELF
 
 export PetscInt, PetscScalar, PetscBool, PetscErrorCode, PetscDataType, PetscReal
@@ -227,7 +229,7 @@ typealias MPI_Comm MPI.Comm  # use MPI package communicator type
 # typealias to size of MPI communicator value
 # this is not defined by the MPI C standard, so it might be
 # 32 bits (MPICH), or possibly 64 bits
-typealias comm_type typeof(MPI.COMM_WORLD.val) 
+typealias comm_type MPI.CComm
 
 global const PETSC_INSERT_VALUES = convert(Int32, 1);
 global const PETSC_ADD_VALUES    = convert(Int32, 2);
