@@ -2,6 +2,8 @@
 # export names
 # do typealiases have to be exported?  I don't think so
 
+typealias comm_type MPI.CComm
+
 export PETSC_NULL, PETSC_IGNORE, PETSC_DECIDE, PETSC_DETERMINE, PETSCDEFAULT, PETSC_COMM_SELF
 
 export PetscInt, PetscScalar, PetscBool, PetscErrorCode, PetscDataType, PetscReal
