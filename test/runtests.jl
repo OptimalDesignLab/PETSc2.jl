@@ -9,7 +9,6 @@ println("PETSC_DIR = ", ENV["PETSC_DIR"])
 MPI.Init()
 
 comm = MPI.COMM_WORLD
-println("typeof(comm) = ", typeof(comm))
 comm_size = MPI.Comm_size(MPI.COMM_WORLD)
 comm_rank = MPI.Comm_rank(MPI.COMM_WORLD)
 

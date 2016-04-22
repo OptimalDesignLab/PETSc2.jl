@@ -4,9 +4,6 @@ export PetscVec, PetscVecSetType, PetscVecSetValues, PetscVecAssemblyBegin, Pets
 type PetscVec
   pobj::Ptr{Void}
   function PetscVec(comm::MPI_Comm)
-    println("constructing vector")
-    println("typeof(comm) = ", typeof(comm))
-    println("comm_type = ", comm_type)
 #    comm = PETSC_COMM_SELF();
     vec = Array(Ptr{Void},1)
     err = ccall(( :VecCreate, libpetsclocation ), PetscErrorCode,(comm_type,Ptr{Void}),comm,vec);
