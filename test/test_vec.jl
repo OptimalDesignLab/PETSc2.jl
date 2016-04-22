@@ -5,6 +5,7 @@ for j=1:length(vec_formats)
 #  format_j = "standard"
   format_j = vec_formats[j]
   println("testing vector format ", format_j)
+  println("typeof(comm) = ", typeof(comm))
   b = PetscVec(comm);
   PetscVecSetType(b, format_j);
   PetscVecSetSizes(b,sys_size, PetscInt(comm_size*sys_size));

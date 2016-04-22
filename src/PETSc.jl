@@ -119,9 +119,9 @@ function PetscInitialize(args,filename,help)
 end
 
 function getPETSC_COMM_SELF()
-  comm = Array(Int64, 1)
-  err = ccall( (:PetscGetPETSC_COMM_SELF,  libpetsclocation),Int32,(Ptr{Int64},),comm);
-  return comm[1]
+  comm = Array(MPI.CComm, 1)
+  err = ccall( (:PetscGetPETSC_COMM_SELF,  libpetsclocation),Int32,(Ptr{comm_type},),comm);
+  return convert(MPI.Comm, comm[1])
 #   return MPI.COMM_WORLD.val
 end
 
@@ -159,7 +159,7 @@ type PetscIS
   function PetscIS(comm::MPI_Comm)
 #    comm = PETSC_COMM_SELF();
     is = Array(Int64,1)
-    err = ccall( (:ISCreate,  libpetsclocation),Int32,(comm_type,Ptr{Void}),comm.val,is)
+    err = ccall( (:ISCreate,  libpetsclocation),Int32,(comm_type,Ptr{Void}),comm,is)
 #    if (err != 0)  # return type stability
 #      return err
 #    end

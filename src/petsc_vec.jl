@@ -4,9 +4,12 @@ export PetscVec, PetscVecSetType, PetscVecSetValues, PetscVecAssemblyBegin, Pets
 type PetscVec
   pobj::Ptr{Void}
   function PetscVec(comm::MPI_Comm)
+    println("constructing vector")
+    println("typeof(comm) = ", typeof(comm))
+    println("comm_type = ", comm_type)
 #    comm = PETSC_COMM_SELF();
     vec = Array(Ptr{Void},1)
-    err = ccall(( :VecCreate, libpetsclocation ), PetscErrorCode,(comm_type,Ptr{Void}),comm.val,vec);
+    err = ccall(( :VecCreate, libpetsclocation ), PetscErrorCode,(comm_type,Ptr{Void}),comm,vec);
     vec = new(vec[1])
 #    finalizer(vec,PetscDestroy)
     # does not seem to be called immediately when vec is no longer visible, is it called later during garbage collection? - yes
@@ -29,7 +32,7 @@ end
   end
 
   function PetscVecSetType(vec::PetscVec,name)
-    err = ccall((:VecSetType,  libpetsclocation), PetscErrorCode, (comm_type, Cstring), vec.pobj,name);
+    err = ccall((:VecSetType,  libpetsclocation), PetscErrorCode, (Ptr{Void}, Cstring), vec.pobj,name);
   end
 
   function PetscVec(array::Array{PetscScalar})

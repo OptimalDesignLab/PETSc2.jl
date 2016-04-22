@@ -6,7 +6,7 @@ type PetscMat  <: AbstractArray{PetscScalar, 2}
   function PetscMat(comm::MPI_Comm)
 #    comm = PETSC_COMM_SELF();
     vec = Array(Ptr{Void},1)
-    err = ccall( (:MatCreate,  libpetsclocation), PetscErrorCode, (comm_type, Ptr{Ptr{Void}}),comm.val,vec);
+    err = ccall( (:MatCreate,  libpetsclocation), PetscErrorCode, (comm_type, Ptr{Ptr{Void}}),comm,vec);
     vec = new(vec[1])
 #    finalizer(vec,PetscDestroy)
     # does not seem to be called immediately when vec is no longer visible, is it called later during garbage collection?
