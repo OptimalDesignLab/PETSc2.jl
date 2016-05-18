@@ -143,6 +143,8 @@ end
   end
 
 
+  function PetscMatAssemblyBegin(obj::AbstractArray, flg::Integer=0)
+  end
 
   function PetscMatAssemblyBegin(obj::PetscMat,flg::Integer)
     err = ccall( ( :MatAssemblyBegin,  libpetsclocation), PetscErrorCode,(Ptr{Void},Int32), obj.pobj,flg);
@@ -150,6 +152,9 @@ end
 
   function PetscMatAssemblyBegin(obj::PetscMat)
     return PetscMatAssemblyBegin(obj,PETSC_MAT_FINAL_ASSEMBLY);
+  end
+
+  function PetscMatAssemblyEnd(obj::AbstractArray, flag=0)
   end
 
   function PetscMatAssemblyEnd(obj::PetscMat,flg::Integer)
