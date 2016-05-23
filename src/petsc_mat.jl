@@ -134,7 +134,7 @@ end
       return err
   end
 
-  function MatSetOption(mat::PetscMat,arg2::MatOption,arg3::PetscBool)
+  function MatSetOption(mat::PetscMat,arg2::MatOption,arg3::Union{Integer, Bool})
       ierr = ccall((:MatSetOption, libpetsclocation),PetscErrorCode, (Ptr{Void},MatOption,PetscBool), mat.pobj, arg2, arg3)
 
       if ierr != 0
