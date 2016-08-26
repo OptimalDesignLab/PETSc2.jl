@@ -26,7 +26,9 @@ install:
 # uncomment the following lines to override the default test script
 script:
   - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
-  - julia --check-bounds=yes -e 'Pkg.clone(pwd()); Pkg.build("PETSc")'
+  - git clone https://github.com/JaredCrean2/Petsc.git
+  - mv -v ./Petsc ./PETSc
+  - julia --check-bounds=yes -e 'Pkg.build("PETSc")'
   - echo $HOME
   - cd ~/.julia/v0.4/PETSc
   - ./test/runtests.sh
