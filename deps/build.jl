@@ -6,7 +6,7 @@ if !haskey(pkg_dict, "MPI")
   Pkg.build("MPI")
 end
 
-if !(haskey(pkg_dir, "FactCheck"))
+if !(haskey(pkg_dict, "FactCheck"))
   Pkg.clone("FactCheck")
   Pkg.checkout("FactCheck", "v0.4.2")
 end
