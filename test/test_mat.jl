@@ -92,7 +92,7 @@ facts("\n   ---testing matrix functions---") do
   PetscMatAssemblyEnd(B,PETSC_MAT_FINAL_ASSEMBLY);
 
 
-
+#=
   for i=1:sys_size
     for j=1:sys_size
       idxm = [global_indices[i] ]  # row index
@@ -108,7 +108,7 @@ facts("\n   ---testing matrix functions---") do
   for i=1:sys_size*sys_size
     A[i] => roughly(A_julia[i])
   end
-
+=#
   @fact size(A) => (sys_size, sys_size)
   @fact size(A, 1) => sys_size
   @fact size(A, 2) => sys_size
