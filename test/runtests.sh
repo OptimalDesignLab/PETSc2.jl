@@ -27,7 +27,7 @@ julia --check-bounds=yes ./test/runtests.jl
 sum=$(expr $sum + $?)
 echo $sum
 
-mpirun -np 2 julia --check-bounds=yes ./test/runtests.jl
+mpirun -np 4 julia --check-bounds=yes ./test/runtests.jl
 sum=$(expr $sum + $?)
 echo $sum
 
@@ -47,7 +47,7 @@ julia --check-bounds=yes ./test/runtests.jl
 sum=$(expr $sum + $?)
 echo $sum
 
-mpirun -np 2 julia --check-bounds=yes ./test/runtests.jl
+mpirun -np 4 julia --check-bounds=yes ./test/runtests.jl
 sum=$(expr $sum + $?)
 echo $sum
 
@@ -68,7 +68,7 @@ julia --check-bounds=yes ./test/runtests.jl
 sum=$(expr $sum + $?)
 echo $sum
 
-mpirun -np 2 julia --check-bounds=yes ./test/runtests.jl
+mpirun -np 4 julia --check-bounds=yes ./test/runtests.jl
 sum=$(expr $sum + $?)
 echo $sum
 
@@ -89,7 +89,7 @@ julia --check-bounds=yes ./test/runtests.jl
 sum=$(expr $sum + $?)
 echo $sum
 
-mpirun -np 2 julia --check-bounds=yes ./test/runtests.jl
+mpirun -np 4 julia --check-bounds=yes ./test/runtests.jl
 sum=$(expr $sum + $?)
 echo $sum
 
@@ -110,7 +110,7 @@ julia --check-bounds=yes ./test/runtests.jl
 sum=$(expr $sum + $?)
 echo $sum
 
-mpirun -np 2 julia --check-bounds=yes ./test/runtests.jl
+mpirun -np 4 julia --check-bounds=yes ./test/runtests.jl
 sum=$(expr $sum + $?)
 echo $sum
 
@@ -131,7 +131,7 @@ julia --check-bounds=yes ./test/runtests.jl
 sum=$(expr $sum + $?)
 echo $sum
 
-mpirun -np 2 julia --check-bounds=yes ./test/runtests.jl
+mpirun -np 4 julia --check-bounds=yes ./test/runtests.jl
 sum=$(expr $sum + $?)
 echo $sum
 
