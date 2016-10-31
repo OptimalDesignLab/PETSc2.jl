@@ -142,6 +142,98 @@ end
       end
   end
 
+  # 1-based indexing for both Petsc and regular matrices
+  #----------------------------------------------------------------------------
+  """
+    1-based indexing for both regular and Pets matrices.
+    The flag must be either PETSC_INSERT_VALUES or PETSC_ADD_VALUES.
+
+    idxm and idxn cannot alias
+  """
+  function set_values1!(mat::PetscMat, idxm::Array{PetscInt}, idxn::Array{PetscInt}, 
+                        vals::Array{PetscScalar}, flag::Integer=PETSC_INSERT_VALUES)
+
+    for i=1:length(idxm)
+      idxm[i] -= 1
+    end
+
+    for i=1:length(idxn)
+      idxn[i] -= 1
+    end
+
+    err = PetscMatSetValues(mat, idxm, idxn, vals, flag)
+
+    for i=1:length(idxm)
+      idxm[i] += 1
+    end
+
+    for i=1:length(idxn)
+      idxn[i] += 1
+    end
+
+    return err
+  end
+
+  function set_values1!{T}(mat::AbstractMatrix, idxm::Array{PetscInt}, idxn::Array{PetscInt}, 
+                           vals::Array{T}, flag::Integer=PETSC_INSERT_VALUES)
+
+    if flag == PETSC_INSERT_VALUES
+      for i=1:length(idxn)
+        for j=1:length(idxm)
+          mat[idxm[j], idxn[i]] = vals[j, i]
+        end
+      end
+    elseif flag == PETSC_ADD_VALUES
+      for i=1:length(idxn)
+        for j=1:length(idxm)
+          mat[idxm[j], idxn[i]] += vals[j, i]
+        end
+      end
+    end
+
+    return PetscErrorCode(0)
+  end
+
+  function get_values1!(mat::PetscMat, idxm::Array{PetscInt}, idxn::Array{PetscInt}, 
+                        vals::Array{PetscScalar})
+
+    for i=1:length(idxm)
+      idxm[i] -= 1
+    end
+
+    for i=1:length(idxn)
+      idxn[i] -= 1
+    end
+
+    err = PetscMatGetValues(mat, idxm, idxn, vals)
+
+    for i=1:length(idxm)
+      idxm[i] += 1
+    end
+
+    for i=1:length(idxn)
+      idxn[i] += 1
+    end
+
+    return err
+  end
+
+  function get_values1!(mat::AbstractMatrix, idxm::Array{PetscInt}, idxn::Array{PetscInt}, 
+                        vals::Array)
+
+    for i=1:length(idxn)
+      for j=1:length(idxm)
+        vals[j, i] = mat[idxm[j], idxn[i]]
+      end
+    end
+
+    return PetscErrorCode(0)
+  end
+
+
+
+
+
 
   function PetscMatAssemblyBegin(obj::AbstractArray, flg::Integer=0)
   end

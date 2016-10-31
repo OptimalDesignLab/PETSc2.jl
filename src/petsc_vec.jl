@@ -1,4 +1,4 @@
-export PetscVec, PetscVecSetType, PetscVecSetValues, PetscVecAssemblyBegin, PetscVecAssemblyEnd, PetscVecSetSizes, PetscVecGetSize, PetscVecNorm, PetscVecGetValues, PetscVecGetOwnershipRange, PetscVecGetArray, PetscVecRestoreArray, PetscVecGetArrayRead, PetscVecRestoreArrayRead, PetscVecSet, PetscVecSqrtAbs, PetscVecLog, PetscVecExp, PetscVecAbs, PetscVecMax, PetscVecMin, PetscVecCopy, PetscVecDuplicate, PetscVecAXPY, PetscVecAXPBY, PetscVecAYPX, PetscVecWAXPY, PetscVecMAXPY, PetscVecAXPBYPCZ, PetscVecScale, PetscVecDot, PetscVecTDot, PetscVecSum, PetscVecSwap, PetscVecReciprocal, PetscVecShift, PetscVecPointwiseMult, PetscVecPointwiseDivide, set_values1!
+export PetscVec, PetscVecSetType, PetscVecSetValues, PetscVecAssemblyBegin, PetscVecAssemblyEnd, PetscVecSetSizes, PetscVecGetSize, PetscVecNorm, PetscVecGetValues, PetscVecGetOwnershipRange, PetscVecGetArray, PetscVecRestoreArray, PetscVecGetArrayRead, PetscVecRestoreArrayRead, PetscVecSet, PetscVecSqrtAbs, PetscVecLog, PetscVecExp, PetscVecAbs, PetscVecMax, PetscVecMin, PetscVecCopy, PetscVecDuplicate, PetscVecAXPY, PetscVecAXPBY, PetscVecAYPX, PetscVecWAXPY, PetscVecMAXPY, PetscVecAXPBYPCZ, PetscVecScale, PetscVecDot, PetscVecTDot, PetscVecSum, PetscVecSwap, PetscVecReciprocal, PetscVecShift, PetscVecPointwiseMult, PetscVecPointwiseDivide, set_values1!, get_values1!
 
 
 type PetscVec
@@ -89,6 +89,29 @@ end
       for i in idx
         vec[i] += vals[i]
       end
+    end
+
+    return PetscErrorCode(0)
+  end
+
+  function get_values1!(vec::PetscVec, idx::Array{PetscInt}, vals::Array{PetscScalar})
+    for i=1:length(idx)
+      idx[i] -= 1
+    end
+
+    err = PetscVecGetValues(vec, idx, vals)
+
+    for i=1:length(idx)
+      idx[i] += 1
+    end
+
+    return err
+  end
+
+
+  function get_values1!(vec::AbstractVector, idx::Array{PetscInt}, vals::Array)
+    for i=1:length(idx)
+      vals[i] = vec[idx[i]]
     end
 
     return PetscErrorCode(0)

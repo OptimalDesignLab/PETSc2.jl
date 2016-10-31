@@ -72,6 +72,39 @@ facts("\n   ---testing matrix functions---") do
   println("global_col_ind = ", global_col_ind)
   B_julia = A_julia + PetscScalar(1)
 
+  # test set_values1!
+  global_indices1 = global_indices + PetscInt(1)
+  global_indices2 = global_indices + PetscInt(1)
+  vals = rand(PetscScalar, sys_size, sys_size)
+
+  set_values1!(A, global_indices1, global_indices2, vals)
+  PetscMatAssemblyBegin(A)
+  PetscMatAssemblyEnd(A)
+  vals2 = zeros(vals)
+  PetscMatGetValues(A, global_indices, global_indices, vals2)
+
+  @fact vals --> roughly(vals2, atol=1e-13)
+  fill!(vals2, 0.0)
+  get_values1!(A, global_indices1, global_indices2, vals2)
+  @fact vals --> roughly(vals2, atol=1e-13)
+
+
+  A2s = zeros(3, 3)
+  idxm = collect(PetscInt, 1:3)
+  idxn = collect(PetscInt, 1:3)
+  vals = rand(3,3)
+  set_values1!(A2s, idxm, idxn, vals)
+
+  @fact A2s[idxm,  idxn] --> roughly(vals, atol=1e-13)
+
+  set_values1!(A2s, idxm, idxn, vals, PETSC_ADD_VALUES)
+
+  @fact A2s[idxm, idxn] --> roughly(2*vals, atol=1e-13)
+  vals2 = zeros(vals)
+  get_values1!(A2s, idxm, idxn, vals2)
+  @fact vals2 --> roughly(2*vals, atol=1e-13)
+
+
 
 
   for i=1:sys_size

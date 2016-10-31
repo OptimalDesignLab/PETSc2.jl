@@ -29,7 +29,7 @@ for j=1:length(vec_formats)
   =#
 
   # test set_values1
-  idxm = global_indices + 1  # 1 based indexing
+  idxm = global_indices + PetscInt(1)  # 1 based indexing
   vals = Array(PetscScalar, sys_size)
   for i=1:sys_size
     vals[i] = i
@@ -40,6 +40,9 @@ for j=1:length(vec_formats)
   vals2 = zeros(vals)
   PetscVecGetValues(b, global_indices, vals2)
 
+  @fact vals --> roughly(vals2, atol=1e-13)
+  fill!(vals2, 0.0)
+  get_values1!(b,  idxm, vals2)
   @fact vals --> roughly(vals2, atol=1e-13)
 
   b2s = zeros(3)
@@ -52,6 +55,9 @@ for j=1:length(vec_formats)
   set_values1!(b2s, idxm, vals, PETSC_ADD_VALUES)
 
   @fact b2s --> roughly(2*vals, atol=1e-13)
+  vals2 = zeros(vals)
+  get_values1!(b2s, idxm, vals2)
+  @fact vals2 --> roughly(2*vals, atol=1e-13)
 
 
 
