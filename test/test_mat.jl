@@ -104,6 +104,14 @@ facts("\n   ---testing matrix functions---") do
   get_values1!(A2s, idxm, idxn, vals2)
   @fact vals2 --> roughly(2*vals, atol=1e-13)
 
+  # test the sparse optimized version of +=
+  A2ss = sparse(A2s)
+  set_values1!(A2ss, idxm, idxn, vals, PETSC_ADD_VALUES)
+  fill!(vals2, 0.0)
+  get_values1!(A2ss, idxm, idxn, vals2)
+  @fact vals2 --> roughly(3*vals, atol=1e-13)
+
+
 
 
 

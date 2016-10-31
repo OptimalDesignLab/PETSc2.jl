@@ -10,6 +10,7 @@ module PETSc
 
 
 using MPI
+using ArrayViews
 include("petsc_constants.jl")  # typedefs and constants
 include("petsc_error.jl")  # error handling
 

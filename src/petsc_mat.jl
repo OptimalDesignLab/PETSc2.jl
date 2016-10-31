@@ -194,6 +194,36 @@ end
     return PetscErrorCode(0)
   end
 
+  function set_values1!{T}(mat::SparseMatrixCSC, idxm::Array{PetscInt}, idxn::Array{PetscInt}, 
+                           vals::Array{T}, flag::Integer=PETSC_INSERT_VALUES)
+
+    if flag == PETSC_INSERT_VALUES
+      for i=1:length(idxn)
+        for j=1:length(idxm)
+          mat[idxm[j], idxn[i]] = vals[j, i]
+        end
+      end
+    elseif flag == PETSC_ADD_VALUES  # optimized += implementation
+      # hoist
+      colptr = mat.colptr
+      rowval = mat.rowval
+      nzval = mat.nzval
+      for i=1:length(idxn)
+        row_start = colptr[idxn[i]]
+        row_end = colptr[idxn[i]+1] - 1
+        rowvals_extract = unsafe_view(rowval, row_start:row_end)
+        for j=1:length(idxm)
+          idx = searchsortedfirst(rowvals_extract, idxm[j])
+          idx = row_start + idx - 1
+          nzval[idx] += vals[j, i]
+        end
+      end
+    end
+
+    return PetscErrorCode(0)
+  end
+
+
   function get_values1!(mat::PetscMat, idxm::Array{PetscInt}, idxn::Array{PetscInt}, 
                         vals::Array{PetscScalar})
 
