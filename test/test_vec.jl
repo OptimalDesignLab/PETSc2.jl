@@ -28,6 +28,34 @@ for j=1:length(vec_formats)
   PetscVecSetSizes(x,sys_size, comm_size*sys_size);
   =#
 
+  # test set_values1
+  idxm = global_indices + 1  # 1 based indexing
+  vals = Array(PetscScalar, sys_size)
+  for i=1:sys_size
+    vals[i] = i
+  end
+  set_values1!(b, idxm, vals)
+  PetscVecAssemblyBegin(b)
+  PetscVecAssemblyEnd(b)
+  vals2 = zeros(vals)
+  PetscVecGetValues(b, global_indices, vals2)
+
+  @fact vals --> roughly(vals2, atol=1e-13)
+
+  b2s = zeros(3)
+  idxm = collect(PetscInt, 1:3)
+  vals = rand(3)
+  set_values1!(b2s, idxm, vals)
+
+  @fact b2s --> roughly(vals, atol=1e-13)
+
+  set_values1!(b2s, idxm, vals, PETSC_ADD_VALUES)
+
+  @fact b2s --> roughly(2*vals, atol=1e-13)
+
+
+
+
   for i=1:sys_size
     idxm = [global_indices[i]]   # index
     val = [ rhs[i] ]  # value
@@ -64,8 +92,7 @@ for j=1:length(vec_formats)
   PetscVecRestoreArray(b, ptr_arr)
   PetscVecRestoreArrayRead(b, ptr_arr2)
 
-  
-
+ 
   @fact PetscVecGetSize(b) => comm_size*sys_size
 
   for i=1:length(vec_norms)

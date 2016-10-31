@@ -1,4 +1,4 @@
-export PetscVec, PetscVecSetType, PetscVecSetValues, PetscVecAssemblyBegin, PetscVecAssemblyEnd, PetscVecSetSizes, PetscVecGetSize, PetscVecNorm, PetscVecGetValues, PetscVecGetOwnershipRange, PetscVecGetArray, PetscVecRestoreArray, PetscVecGetArrayRead, PetscVecRestoreArrayRead, PetscVecSet, PetscVecSqrtAbs, PetscVecLog, PetscVecExp, PetscVecAbs, PetscVecMax, PetscVecMin, PetscVecCopy, PetscVecDuplicate, PetscVecAXPY, PetscVecAXPBY, PetscVecAYPX, PetscVecWAXPY, PetscVecMAXPY, PetscVecAXPBYPCZ, PetscVecScale, PetscVecDot, PetscVecTDot, PetscVecSum, PetscVecSwap, PetscVecReciprocal, PetscVecShift, PetscVecPointwiseMult, PetscVecPointwiseDivide
+export PetscVec, PetscVecSetType, PetscVecSetValues, PetscVecAssemblyBegin, PetscVecAssemblyEnd, PetscVecSetSizes, PetscVecGetSize, PetscVecNorm, PetscVecGetValues, PetscVecGetOwnershipRange, PetscVecGetArray, PetscVecRestoreArray, PetscVecGetArrayRead, PetscVecRestoreArrayRead, PetscVecSet, PetscVecSqrtAbs, PetscVecLog, PetscVecExp, PetscVecAbs, PetscVecMax, PetscVecMin, PetscVecCopy, PetscVecDuplicate, PetscVecAXPY, PetscVecAXPBY, PetscVecAYPX, PetscVecWAXPY, PetscVecMAXPY, PetscVecAXPBYPCZ, PetscVecScale, PetscVecDot, PetscVecTDot, PetscVecSum, PetscVecSwap, PetscVecReciprocal, PetscVecShift, PetscVecPointwiseMult, PetscVecPointwiseDivide, set_values1!
 
 
 type PetscVec
@@ -47,7 +47,9 @@ end
 
   function PetscVecSetValues(vec::PetscVec,idx::Array{PetscInt},array::Array{PetscScalar},flag::Integer)
 
-    err = ccall( ( :VecSetValues,  libpetsclocation), PetscErrorCode, (Ptr{Void},PetscInt ,Ptr{PetscInt},Ptr{PetscScalar},Int32), vec.pobj,length(idx), idx,array,flag);
+    err = ccall( ( :VecSetValues,  libpetsclocation), PetscErrorCode, 
+                 (Ptr{Void},PetscInt ,Ptr{PetscInt},Ptr{PetscScalar},Int32), 
+                 vec.pobj,length(idx), idx,array,flag);
     return err
   end
 
@@ -60,6 +62,38 @@ end
     for i=1:length(array);  idx[i] = i-1;  end
     PetscVecSetValues(vec,idx,array,PETSC_INSERT_VALUES)
   end
+
+
+  # 1-based indexing that unifies regular matrices and Petsc matrices
+  #----------------------------------------------------------------------------
+  function set_values1!(vec::PetscVec, idx::Array{PetscInt}, vals::Array{PetscScalar}, flag::Integer=PETSC_INSERT_VALUES)
+    for i=1:length(idx)
+      idx[i] -= 1
+    end
+
+    err = PetscVecSetValues(vec, idx, vals, flag)
+
+    for i=1:length(idx)
+      idx[i] += 1
+    end
+
+    return err
+  end
+
+  function set_values1!{T}(vec::AbstractVector, idx::Array{PetscInt}, vals::Array{T}, flag::Integer=PETSC_INSERT_VALUES)
+    if flag == PETSC_INSERT_VALUES
+      for i in idx
+        vec[i] = vals[i]
+      end
+    elseif flag == PETSC_ADD_VALUES
+      for i in idx
+        vec[i] += vals[i]
+      end
+    end
+
+    return PetscErrorCode(0)
+  end
+
 
   function PetscVecAssemblyBegin(obj::PetscVec)
     err = ccall( ( :VecAssemblyBegin,  libpetsclocation), PetscErrorCode, (Ptr{Void},), obj.pobj);
@@ -104,6 +138,11 @@ function PetscVecGetValues(vec::PetscVec, ni::Integer, ix::AbstractArray{PetscIn
     err = ccall((:VecGetValues,petsc),PetscErrorCode,(Ptr{Void},PetscInt,Ptr{PetscInt},Ptr{PetscScalar}),vec.pobj, ni, ix, y)
 
     return nothing
+end
+
+function PetscVecGetValues(vec::PetscVec,idx::AbstractArray{PetscInt,1}, y::AbstractArray{PetscScalar, 1})
+
+  PetscVecGetValues(vec, length(idx), idx, y)
 end
 
 function PetscVecGetOwnershipRange(vec::PetscVec)
