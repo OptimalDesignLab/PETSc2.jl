@@ -96,15 +96,20 @@ end
 
   function PetscMatSetFromOptions(mat::PetscMat)
     ccall((:MatSetFromOptions,petsc),PetscErrorCode,(Ptr{Void},), mat.pobj)
+
+    MatSetOption(mat, MAT_ROW_ORIENTED, PETSC_TRUE)  # julia data is column-major
   end
 
 
   function PetscMatSetType(vec::PetscMat,name)
     err = ccall( (:MatSetType,  libpetsclocation), PetscErrorCode,(Ptr{Void}, Cstring), vec.pobj,name);
+
   end
 
   function PetscSetUp(vec::PetscMat)
     err = ccall( ( :MatSetUp,  libpetsclocation), PetscErrorCode, (Ptr{Void},), vec.pobj);
+
+    MatSetOption(vec, MAT_ROW_ORIENTED, PETSC_TRUE)  # julia data is column-major
   end
 
 #=
