@@ -17,7 +17,7 @@ include("petsc_error.jl")  # error handling
 import Base.show
 
 # export all names
-export PetscInitialize, getPETSC_COMM_SELF, PetscView, PetscIS, PetscDestroy, PetscISSetType, PetscISGetSizePetscISGetIndices, PetscDataTypeFromString, PetscDataTypeGetSize, PetscFinalize
+export PetscInitialize, PetscInitialized, getPETSC_COMM_SELF, PetscView, PetscIS, PetscDestroy, PetscISSetType, PetscISGetSizePetscISGetIndices, PetscDataTypeFromString, PetscDataTypeGetSize, PetscFinalize
 
 
 
