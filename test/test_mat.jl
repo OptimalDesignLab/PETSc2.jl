@@ -347,6 +347,13 @@ facts("\n   ---testing matrix functions---") do
   cnorm = PetscMatNorm(C, NORM_FROBENIUS)
   @fact cnorm => roughly(0.0, atol=1e-3)  # norm is zero iff matrix is zero
 
+  a = rand(3,3)
+  PetscMatZeroEntries(a)
+  @fact norm(a) => 0.0
+
+  a = sprand(10, 10, 0.1)
+  PetscMatZeroEntries(a)
+  @fact sum(a.nzval) => 0.0
 
   @fact PetscDestroy(A) => 0
   PetscDestroy(B)

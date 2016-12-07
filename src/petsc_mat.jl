@@ -342,6 +342,14 @@ function PetscMatZeroEntries(mat::PetscMat)
     ccall((:MatZeroEntries,petsc),PetscErrorCode,(Ptr{Void},),mat.pobj)
 end
 
+function PetscMatZeroEntries(mat::AbstractMatrix)
+  fill!(mat, 0.0)
+end
+
+function MatZeroEntries(Mat::SparseMatrixCSC)
+  fill!(mat.nzval, 0.0)
+end
+
 
 
 ### new function ###
