@@ -363,10 +363,17 @@ function PetscMatAYPX( Y::PetscMat, a::PetscScalar, X::PetscMat, str::PetscMatSt
     ccall((:MatAYPX,petsc),PetscErrorCode,(Ptr{Void},PetscScalar,Ptr{Void}, PetscMatStructure), Y.pobj, a, X.pobj, str)
 end
 
-function PetscMatScale(mat::PetscMat, a::PetscScalar)
-    ccall((:MatScale,petsc),PetscErrorCode,(Ptr{Void},PetscScalar), mat.pobj, a)
+function PetscMatScale(mat::PetscMat, a::Number)
+    ccall((:MatScale,petsc),PetscErrorCode,(Ptr{Void},PetscScalar), mat.pobj, PetscScalar(a))
 end
 
+function PetscMatScale(mat::AbstractArray, a::Number)
+  scale!(mat, PetscScalar(a))
+end
+
+function PetscMatScale(mat::SparseMatrixCSC, a::Number)
+  scale!(mat.nzval, PetscScalar(a))
+end
 
 function PetscMatShift(mat::PetscMat, a::PetscScalar)
     ccall((:MatShift,petsc),PetscErrorCode,(Ptr{Void},PetscScalar), mat.pobj, a)

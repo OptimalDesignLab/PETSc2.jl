@@ -199,6 +199,17 @@ facts("\n   ---testing matrix functions---") do
     end
   end
 
+  fac = 2.0
+  C_julia = rand(3,3)
+  C_julia2 = fac*C_julia
+  PetscMatScale(C_julia, 2.0)
+  @fact C_julia => roughly(C_julia2)
+
+  C_julia = sprand(10, 10, 0.1)
+  C_julia2 = fac*C_julia
+  PetscMatScale(C_julia, fac)
+  @fact C_julia => roughly(C_julia2)
+
   println("finished testing MatScale")
 
   PetscMatShift(B, alpha)
