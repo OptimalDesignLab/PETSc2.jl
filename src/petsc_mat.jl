@@ -346,7 +346,7 @@ function PetscMatZeroEntries(mat::AbstractMatrix)
   fill!(mat, 0.0)
 end
 
-function MatZeroEntries(Mat::SparseMatrixCSC)
+function PetscMatZeroEntries(mat::SparseMatrixCSC)
   fill!(mat.nzval, 0.0)
 end
 
