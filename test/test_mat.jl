@@ -104,6 +104,8 @@ facts("\n   ---testing matrix functions---") do
   get_values1!(A2s, idxm, idxn, vals2)
   @fact vals2 --> roughly(2*vals, atol=1e-13)
 
+
+  
   # test the sparse optimized version of +=
   A2ss = sparse(A2s)
   set_values1!(A2ss, idxm, idxn, vals, PETSC_ADD_VALUES)
@@ -131,6 +133,43 @@ facts("\n   ---testing matrix functions---") do
 
   PetscMatAssemblyBegin(B,PETSC_MAT_FINAL_ASSEMBLY);
   PetscMatAssemblyEnd(B,PETSC_MAT_FINAL_ASSEMBLY);
+
+
+  # test CreateMatTransposed
+  At = MatCreateTranspose(A)
+
+  b2t = PetscVec(comm);
+  PetscVecSetType(b2t, VECMPI);
+  PetscVecSetSizes(b2t, sys_size, PetscInt(comm_size*sys_size));
+
+  x2 = PetscVec(comm);
+  PetscVecSetType(x2, VECMPI);
+  PetscVecSetSizes(x2, sys_size, PetscInt(comm_size*sys_size));
+
+  PetscVecSetValues(x2, global_indices, rhs)
+
+  PetscVecAssemblyBegin(x2)
+  PetscVecAssemblyEnd(x2)
+
+  PetscMatMult(At, x2, b2t)
+
+  b2t_julia = A_julia.'*rhs
+
+  vals = zeros(PetscScalar, sys_size)
+  PetscVecGetValues(b2t, global_indices, vals)
+
+  for i=1:sys_size
+    @fact b2t_julia[i] --> roughly(vals[i], atol=1e-12)
+  end
+
+  PetscDestroy(At)
+  PetscDestroy(b2t)
+  PetscDestroy(x2)
+
+
+
+
+
 
 
 #=

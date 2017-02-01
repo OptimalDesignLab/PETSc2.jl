@@ -1,4 +1,4 @@
-export PetscMat, PetscMatSetType, PetscSetUp, PetscMatSetValues, PetscMatAssemblyBegin, PetscMatAssemblyEnd, PetscMatSetSizes, PetscMatGetSize, PetscMatGetValues, PetscMatGetOwnershipRange, PetscMatXAIJSetPreallocation, PetscMatMPIAIJSetPreallocation, PetscMatSetFromOptions, PetscMatGetInfo, PetscMatMatMult, PetscMatNorm, PetscMatZeroEntries, PetscMatSetValuesBlocked, MatSetOption, MatCreateShell, MatShellSetOperation, MatShellGetContext, MatGetType
+export PetscMat, PetscMatSetType, PetscSetUp, PetscMatSetValues, PetscMatAssemblyBegin, PetscMatAssemblyEnd, PetscMatSetSizes, PetscMatGetSize, PetscMatGetValues, PetscMatGetOwnershipRange, PetscMatXAIJSetPreallocation, PetscMatMPIAIJSetPreallocation, PetscMatSetFromOptions, PetscMatGetInfo, PetscMatMatMult, PetscMatNorm, PetscMatZeroEntries, PetscMatSetValuesBlocked, MatSetOption, MatCreateShell, MatShellSetOperation, MatShellGetContext, MatGetType, MatCreateTranspose
 
 
 type PetscMat  <: AbstractArray{PetscScalar, 2}
@@ -44,6 +44,14 @@ function MatGetType(arg1::PetscMat)
     arg2 = Ref{Ptr{UInt8}}()
     ccall((:MatGetType,petsc),PetscErrorCode,(Ptr{Void}, Ref{Ptr{UInt8}}),arg1.pobj,arg2)
     return bytestring(arg2[])
+end
+
+function MatCreateTranspose(arg1::PetscMat)
+  arg2 = Ref{Ptr{Void}}()
+
+  ccall((:MatCreateTranspose,petsc),PetscErrorCode,(Ptr{Void},Ptr{Ptr{Void}}),arg1.pobj, arg2)
+
+  return PetscMat(arg2[])
 end
 
 
