@@ -54,15 +54,26 @@ function MatCreateTranspose(arg1::PetscMat)
   return PetscMat(arg2[])
 end
 
-function MatTranspose(A::PetscMat; inplace::Bool=false)
+"""
+  Constructs the transpose of a given matrix.  Can be in place or out of place.
+
+  Inputs:
+    A: matrix to take the transpose of
+
+  Keywords:
+    inplace: whether or not to do the transpose in place
+
+  Outputs:
+    A PetscMat object, either the original object A if the transpose was done 
+    in place, or a new matrix object if the transpose was done out of place
+"""
+function MatTranspose(A::PetscMat; inplace::Bool=false, mat_initialized=false)
   if inplace
     B = Ref{Ptr{Void}}(A.pobj)
     reuse = MAT_REUSE_MATRIX
-#    reuse = MAT_INITIAL_MATRIX
   else
     B = Ref{Ptr{Void}}()
     reuse = MAT_INITIAL_MATRIX
-#    reuse = MAT_REUSE_MATRIX
   end
 
   println("before, A.pobj = ", A.pobj)
