@@ -685,4 +685,3 @@ const MATOP_FDCOLORING_SETUP = (UInt32)(142)
 const MATOP_MPICONCATENATESEQ = (UInt32)(144)
 # end enum MatOperation
 
-

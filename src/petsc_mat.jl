@@ -1,4 +1,4 @@
-export PetscMat, PetscMatSetType, PetscSetUp, PetscMatSetValues, PetscMatAssemblyBegin, PetscMatAssemblyEnd, PetscMatSetSizes, PetscMatGetSize, PetscMatGetValues, PetscMatGetOwnershipRange, PetscMatXAIJSetPreallocation, PetscMatMPIAIJSetPreallocation, PetscMatSetFromOptions, PetscMatGetInfo, PetscMatMatMult, PetscMatNorm, PetscMatZeroEntries, PetscMatSetValuesBlocked, MatSetOption, MatCreateShell, MatShellSetOperation, MatShellGetContext, MatGetType, MatCreateTranspose
+export PetscMat, PetscMatSetType, PetscSetUp, PetscMatSetValues, PetscMatAssemblyBegin, PetscMatAssemblyEnd, PetscMatSetSizes, PetscMatGetSize, PetscMatGetValues, PetscMatGetOwnershipRange, PetscMatXAIJSetPreallocation, PetscMatMPIAIJSetPreallocation, PetscMatSetFromOptions, PetscMatGetInfo, PetscMatMatMult, PetscMatNorm, PetscMatZeroEntries, PetscMatSetValuesBlocked, MatSetOption, MatCreateShell, MatShellSetOperation, MatShellGetContext, MatGetType, MatCreateTranspose, MatTranspose
 
 
 type PetscMat  <: AbstractArray{PetscScalar, 2}
@@ -53,6 +53,32 @@ function MatCreateTranspose(arg1::PetscMat)
 
   return PetscMat(arg2[])
 end
+
+function MatTranspose(A::PetscMat; inplace::Bool=false)
+  if inplace
+    B = Ref{Ptr{Void}}(A.pobj)
+    reuse = MAT_REUSE_MATRIX
+#    reuse = MAT_INITIAL_MATRIX
+  else
+    B = Ref{Ptr{Void}}()
+    reuse = MAT_INITIAL_MATRIX
+#    reuse = MAT_REUSE_MATRIX
+  end
+
+  println("before, A.pobj = ", A.pobj)
+    ccall((:MatTranspose,petsc),PetscErrorCode,(Ptr{Void},MatReuse,Ptr{Ptr{Void}}),A.pobj, reuse, B)
+
+  println("after, A.pobj = ", A.pobj)
+  println("typeof(B) = ", typeof(B))
+  println("after, B[] = ", B[])
+
+  if inplace
+    return A
+  else
+    return PetscMat(B[])
+  end
+end
+
 
 
 

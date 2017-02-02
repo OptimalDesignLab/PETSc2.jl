@@ -166,6 +166,40 @@ facts("\n   ---testing matrix functions---") do
   PetscDestroy(b2t)
   PetscDestroy(x2)
 
+  # test MatTranpose
+  println("testing out of place transpose")
+  At = MatTranspose(A, inplace=false)
+  vals = zeros(PetscScalar, sys_size, sys_size)
+  valst = zeros(vals)
+  PetscMatGetValues(A, global_indices, global_indices, vals)
+  PetscMatGetValues(At, global_indices, global_indices, valst)
+
+  for i=1:sys_size
+    for j=1:sys_size
+      @fact vals[i, j] --> roughly(valst[j, i], atol=1e-12)
+    end
+  end
+
+  println("testing in place transpose")
+  At = MatTranspose(At, inplace=true)
+  fill!(vals, 0.0)
+  fill!(valst, 0.0)
+  PetscMatGetValues(A, global_indices, global_indices, vals)
+  PetscMatGetValues(At, global_indices, global_indices, valst)
+
+  println("vals = \n", vals)
+  println("valst = \n", valst)
+
+  for i=1:sys_size
+    for j=1:sys_size
+      @fact vals[i, j] --> roughly(valst[i, j], atol=1e-12)
+    end
+  end
+
+
+  PetscDestroy(At)
+
+
 
 
 
