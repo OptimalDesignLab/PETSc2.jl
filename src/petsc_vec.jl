@@ -20,6 +20,28 @@ type PetscVec
  
 end
 
+  """
+    Create a vector of a given size.  Users can specify either the global
+    dimension or the local dimension
+  """
+  function PetscVec(mglobal::Integer, comm::MPI_Comm; mlocal=PETSC_DECIDE)
+    vec = PetscVec(comm)
+    PetscVecSetSizes(vec::PetscVec,nglobal, mlocal)
+
+    return vec
+  end
+
+  """
+    Create a PetscVec, setting both the type and the format.  Users can specify
+    either the local or global dimensions
+  """
+  function PetscVec(mglobal::Integer, format, comm::MPI_Comm; mlocal=PETSC_DECIDE)
+    vec = PetscVec(mglobal, comm, mlocal=mlocal)
+    PetscVecSetType(vec, format)
+    return vec
+  end
+
+
   function PetscDestroy(vec::PetscVec)
     if (vec.pobj != 0)
       err = ccall(( :VecDestroy, libpetsclocation), PetscErrorCode, (Ptr{Ptr{Void}},), &vec.pobj);

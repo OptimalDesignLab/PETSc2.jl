@@ -18,6 +18,12 @@ type PetscMat  <: AbstractArray{PetscScalar, 2}
   end
 end
 
+#=
+function PetscMat(mglobal::Integer, nglobal::Integer, comm::MPI_comm; mlocal=PETSC_DECIDE, nlocal=PETSC_DECIDE)
+
+  mat = PetscMat(comm)
+  PetscMatSetSize(
+=#
 
 function MatCreateShell(arg1::MPI_Comm,arg2::Integer,arg3::Integer,arg4::Integer,arg5::Integer, arg6::Ptr{Void})
   # arg6 is the user provided context
