@@ -165,7 +165,7 @@ facts("\n   ---testing matrix functions---") do
   PetscDestroy(At)
   PetscDestroy(b2t)
   PetscDestroy(x2)
-
+#=
   # test MatTranpose
   println("testing out of place transpose")
   At = MatTranspose(A, inplace=false)
@@ -198,7 +198,7 @@ facts("\n   ---testing matrix functions---") do
 
 
   PetscDestroy(At)
-
+=#
 
 
 
