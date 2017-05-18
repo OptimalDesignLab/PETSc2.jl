@@ -12,7 +12,7 @@ module PETSc
 using MPI
 using ArrayViews
 include("petsc_constants.jl")  # typedefs and constants
-include("petsc_error.jl")  # error handling
+include("error.jl")  # error handling
 
 import Base.show
 
@@ -214,16 +214,16 @@ end
 # -------------------------------------
 #
 
-include("petsc_vec.jl")
+include("vec.jl")
 
 # -------------------------------------
-include("petsc_mat.jl")
+include("mat.jl")
 
 # -------------------------------------
-include("petsc_ksp.jl")
+include("ksp.jl")
 
 # -------------------------------------
-include("petsc_pc.jl")
+include("pc.jl")
 
 end  # end module
 
