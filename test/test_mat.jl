@@ -1,56 +1,56 @@
 # test Petsc matrix functions
 facts("\n   ---testing matrix functions---") do 
   A = PetscMat(comm)
-  PetscMatSetType(A, "mpiaij")
+  MatSetType(A, "mpiaij")
 
-  PetscMatSetSizes(A,sys_size,sys_size, PetscInt(comm_size*sys_size),PetscInt(comm_size*sys_size));
-  PetscSetUp(A);
+  MatSetSizes(A,sys_size,sys_size, PetscInt(comm_size*sys_size),PetscInt(comm_size*sys_size));
+  SetUp(A);
 
   println("mat_type = ", MatGetType(A))
 
   B = PetscMat(comm)
-  PetscMatSetType(B, "mpiaij")
+  MatSetType(B, "mpiaij")
 
-  PetscMatSetSizes(B,sys_size,sys_size, PetscInt(comm_size*sys_size),PetscInt(comm_size*sys_size));
-  PetscSetUp(B);
+  MatSetSizes(B,sys_size,sys_size, PetscInt(comm_size*sys_size),PetscInt(comm_size*sys_size));
+  SetUp(B);
 
   x = PetscVec(comm);
-  PetscVecSetType(x, VECMPI);
-  PetscVecSetSizes(x,sys_size, PetscInt(comm_size*sys_size));
+  VecSetType(x, VECMPI);
+  VecSetSizes(x,sys_size, PetscInt(comm_size*sys_size));
 
-  low, high = PetscVecGetOwnershipRange(x)
+  low, high = VecGetOwnershipRange(x)
   global_indices = Array(low:PetscInt(high - 1))
  
 
   for i=1:sys_size
     idxm = [global_indices[i]]   # index
     val = [ rhs[i] ]  # value
-    PetscVecSetValues(x, idxm, val, PETSC_INSERT_VALUES)
+    VecSetValues(x, idxm, val, PETSC_INSERT_VALUES)
   end
 
-  PetscVecAssemblyBegin(x)
-  PetscVecAssemblyEnd(x)
+  VecAssemblyBegin(x)
+  VecAssemblyEnd(x)
 
   xvec_julia = deepcopy(rhs)
 
 
   y = PetscVec(comm);
-  PetscVecSetType(y, VECMPI);
-  PetscVecSetSizes(y,sys_size, PetscInt(comm_size*sys_size));
+  VecSetType(y, VECMPI);
+  VecSetSizes(y,sys_size, PetscInt(comm_size*sys_size));
 
   for i=1:sys_size
     idxm = [global_indices[i]]   # index
     val = [ rhs[i] ]  # value
-    PetscVecSetValues(y, idxm, val, PETSC_INSERT_VALUES)
+    VecSetValues(y, idxm, val, PETSC_INSERT_VALUES)
   end
 
-  PetscVecAssemblyBegin(y)
-  PetscVecAssemblyEnd(y)
+  VecAssemblyBegin(y)
+  VecAssemblyEnd(y)
 
   y_julia = deepcopy(rhs)
 
 
-  low, high = PetscMatGetOwnershipRange(A)
+  low, high = MatGetOwnershipRange(A)
   global_indices = Array(low:PetscInt(high - 1))
   println("comm_rank = ", comm_rank, " , global_indices = ", global_indices)
 
@@ -78,10 +78,10 @@ facts("\n   ---testing matrix functions---") do
   vals = rand(PetscScalar, sys_size, sys_size)
 
   set_values1!(A, global_indices1, global_indices2, vals)
-  PetscMatAssemblyBegin(A)
-  PetscMatAssemblyEnd(A)
+  MatAssemblyBegin(A)
+  MatAssemblyEnd(A)
   vals2 = zeros(vals)
-  PetscMatGetValues(A, global_indices, global_indices, vals2)
+  MatGetValues(A, global_indices, global_indices, vals2)
 
   @fact vals --> roughly(vals2, atol=1e-13)
   fill!(vals2, 0.0)
@@ -121,42 +121,42 @@ facts("\n   ---testing matrix functions---") do
     for j = 1:sys_size
       idxm = [ global_indices[i] ] # row index
       idxn = [ global_indices[j] ] # column index
-      PetscMatSetValues(A,idxm, idxn, [A_julia[i,j]],PETSC_INSERT_VALUES);
-      PetscMatSetValues(B,idxm, idxn, [A_julia[i,j] + PetscScalar(1)],PETSC_INSERT_VALUES);
+      MatSetValues(A,idxm, idxn, [A_julia[i,j]],PETSC_INSERT_VALUES);
+      MatSetValues(B,idxm, idxn, [A_julia[i,j] + PetscScalar(1)],PETSC_INSERT_VALUES);
     end
   end
 
   B_copy = zeros(PetscScalar, sys_size, sys_size)
 
-  PetscMatAssemblyBegin(A,PETSC_MAT_FINAL_ASSEMBLY);
-  PetscMatAssemblyEnd(A,PETSC_MAT_FINAL_ASSEMBLY);
+  MatAssemblyBegin(A,PETSC_MAT_FINAL_ASSEMBLY);
+  MatAssemblyEnd(A,PETSC_MAT_FINAL_ASSEMBLY);
 
-  PetscMatAssemblyBegin(B,PETSC_MAT_FINAL_ASSEMBLY);
-  PetscMatAssemblyEnd(B,PETSC_MAT_FINAL_ASSEMBLY);
+  MatAssemblyBegin(B,PETSC_MAT_FINAL_ASSEMBLY);
+  MatAssemblyEnd(B,PETSC_MAT_FINAL_ASSEMBLY);
 
 
   # test CreateMatTransposed
   At = MatCreateTranspose(A)
 
   b2t = PetscVec(comm);
-  PetscVecSetType(b2t, VECMPI);
-  PetscVecSetSizes(b2t, sys_size, PetscInt(comm_size*sys_size));
+  VecSetType(b2t, VECMPI);
+  VecSetSizes(b2t, sys_size, PetscInt(comm_size*sys_size));
 
   x2 = PetscVec(comm);
-  PetscVecSetType(x2, VECMPI);
-  PetscVecSetSizes(x2, sys_size, PetscInt(comm_size*sys_size));
+  VecSetType(x2, VECMPI);
+  VecSetSizes(x2, sys_size, PetscInt(comm_size*sys_size));
 
-  PetscVecSetValues(x2, global_indices, rhs)
+  VecSetValues(x2, global_indices, rhs)
 
-  PetscVecAssemblyBegin(x2)
-  PetscVecAssemblyEnd(x2)
+  VecAssemblyBegin(x2)
+  VecAssemblyEnd(x2)
 
-  PetscMatMult(At, x2, b2t)
+  MatMult(At, x2, b2t)
 
   b2t_julia = A_julia.'*rhs
 
   vals = zeros(PetscScalar, sys_size)
-  PetscVecGetValues(b2t, global_indices, vals)
+  VecGetValues(b2t, global_indices, vals)
 
   for i=1:sys_size
     @fact b2t_julia[i] --> roughly(vals[i], atol=1e-12)
@@ -212,7 +212,7 @@ facts("\n   ---testing matrix functions---") do
       idxm = [global_indices[i] ]  # row index
       idxn = [ global_indices[j] ] # column index
       v = zeros(PetscScalar, 1,1)
-      PetscMatGetValues(A, idxm, idxn, v)
+      MatGetValues(A, idxm, idxn, v)
 #      println("i = ", i, " j = ", j, " v = ", v[1,1], " A[i,j] = ", A_julia[i,j])
       @fact v[1,1] => roughly(A_julia[i,j]) "mismatch at i=$i, j=$j"
       @fact A[i,j] => roughly(A_julia[i,j])
@@ -228,9 +228,9 @@ facts("\n   ---testing matrix functions---") do
   @fact size(A, 2) => sys_size
 
 
-  @fact PetscMatGetSize(A) => (comm_size*sys_size, comm_size*sys_size)
-  println("Mat local size = ", PetscMatGetLocalSize)
-  @fact PetscMatGetLocalSize(A) => (sys_size, sys_size)
+  @fact MatGetSize(A) => (comm_size*sys_size, comm_size*sys_size)
+  println("Mat local size = ", MatGetLocalSize)
+  @fact MatGetLocalSize(A) => (sys_size, sys_size)
   # testing non zero exist code is all we can really do here
   println("Printing A")
   @fact PetscView(A, 0) => 0
@@ -241,9 +241,9 @@ facts("\n   ---testing matrix functions---") do
   alpha = PetscScalar(2.3)
 
 
-  PetscMatAXPY(B, alpha, A, DIFFERENT_NONZERO_PATTERN)
+  MatAXPY(B, alpha, A, DIFFERENT_NONZERO_PATTERN)
   B_julia = alpha*A_julia + B_julia
-  PetscMatGetValues(B, global_indices, global_indices, B_copy)
+  MatGetValues(B, global_indices, global_indices, B_copy)
   for i=1:sys_size
     for j=1:sys_size
       @fact B_julia[j, i] => roughly(B_copy[i, j])
@@ -252,9 +252,9 @@ facts("\n   ---testing matrix functions---") do
 
   println("finished testing MatAXPY")
 
-  PetscMatAYPX(B, alpha, A, DIFFERENT_NONZERO_PATTERN)
+  MatAYPX(B, alpha, A, DIFFERENT_NONZERO_PATTERN)
   B_julia = alpha*B_julia + A_julia
-  PetscMatGetValues(B, global_indices, global_indices, B_copy)
+  MatGetValues(B, global_indices, global_indices, B_copy)
   for i=1:sys_size
     for j=1:sys_size
       @fact B_julia[j, i] => roughly(B_copy[i, j])
@@ -263,9 +263,9 @@ facts("\n   ---testing matrix functions---") do
 
   println("finished testing MatAYPX")
 
-  PetscMatScale(B, alpha)
+  MatScale(B, alpha)
   B_julia = alpha*B_julia
-  PetscMatGetValues(B, global_indices, global_indices, B_copy)
+  MatGetValues(B, global_indices, global_indices, B_copy)
   for i=1:sys_size
     for j=1:sys_size
       @fact B_julia[j, i] => roughly(B_copy[i, j])
@@ -275,19 +275,19 @@ facts("\n   ---testing matrix functions---") do
   fac = 2.0
   C_julia = rand(3,3)
   C_julia2 = fac*C_julia
-  PetscMatScale(C_julia, 2.0)
+  MatScale(C_julia, 2.0)
   @fact C_julia => roughly(C_julia2)
 
   C_julia = sprand(10, 10, 0.1)
   C_julia2 = fac*C_julia
-  PetscMatScale(C_julia, fac)
+  MatScale(C_julia, fac)
   @fact C_julia => roughly(C_julia2)
 
   println("finished testing MatScale")
 
-  PetscMatShift(B, alpha)
+  MatShift(B, alpha)
   B_julia += alpha*eye(PetscScalar, sys_size)
-  PetscMatGetValues(B, global_indices, global_indices, B_copy)
+  MatGetValues(B, global_indices, global_indices, B_copy)
   for i=1:sys_size
     for j=1:sys_size
       @fact B_julia[j, i] => roughly(B_copy[i, j])
@@ -297,43 +297,43 @@ facts("\n   ---testing matrix functions---") do
   println("finished testing PetscMatShift")
 
   y_copy = zeros(PetscScalar, sys_size)
-  PetscMatMult(B, x, y)
+  MatMult(B, x, y)
   y_julia = B_julia*xvec_julia
 
-  PetscVecGetValues(y, sys_size, global_indices, y_copy)
+  VecGetValues(y, sys_size, global_indices, y_copy)
   for i=1:sys_size
       @fact y_julia[i] => roughly(y_copy[i])
   end
 
 
-  PetscMatMultAdd(B, x, y, y)
+  MatMultAdd(B, x, y, y)
   y_julia = y_julia + B_julia*xvec_julia
-  PetscVecGetValues(y, sys_size, global_indices, y_copy)
+  VecGetValues(y, sys_size, global_indices, y_copy)
   for i=1:sys_size
       @fact y_julia[i] => roughly(y_copy[i])
   end
 
-  PetscMatMultTranspose(A, x, y)
+  MatMultTranspose(A, x, y)
   y_julia = A_julia.'*xvec_julia
-  PetscVecGetValues(y, sys_size, global_indices, y_copy)
+  VecGetValues(y, sys_size, global_indices, y_copy)
   for i=1:sys_size
       @fact y_julia[i] => roughly(y_copy[i])
   end
 
-  PetscMatMultHermitianTranspose(A, x, y)
+  MatMultHermitianTranspose(A, x, y)
   y_julia = A_julia'*xvec_julia
-  PetscVecGetValues(y, sys_size, global_indices, y_copy)
+  VecGetValues(y, sys_size, global_indices, y_copy)
   for i=1:sys_size
       @fact y_julia[i] => roughly(y_copy[i])
   end
 
 
   D = PetscMat(comm)
-  PetscMatMatMult(A, B, MAT_INITIAL_MATRIX, PetscReal(1.0), D)
+  MatMatMult(A, B, MAT_INITIAL_MATRIX, PetscReal(1.0), D)
   D_julia = A_julia*B_julia
   println("D_julia = ", D_julia)
   D_copy = zeros(PetscScalar, sys_size, sys_size)
-  PetscMatGetValues(D, global_indices, global_indices, D_copy)
+  MatGetValues(D, global_indices, global_indices, D_copy)
 
   for i=1:sys_size
     for j=1:sys_size
@@ -342,8 +342,8 @@ facts("\n   ---testing matrix functions---") do
   end
 
   # test matrix norms
-  fnorm = PetscMatNorm(D, NORM_FROBENIUS)
-  infnorm = PetscMatNorm(D, NORM_INFINITY)
+  fnorm = MatNorm(D, NORM_FROBENIUS)
+  infnorm = MatNorm(D, NORM_INFINITY)
   
   @fact fnorm => roughly(sqrt(comm_size)*vecnorm(D_julia), atol=1e-2)
   @fact infnorm => roughly(norm(D_julia, Inf))
@@ -352,13 +352,13 @@ facts("\n   ---testing matrix functions---") do
   println("testing preallocation")
   nb = PetscInt(100)  # number of times/blocks to insert
   C = PetscMat(comm)
-  PetscMatSetType(C, "mpiaij")
-#  PetscMatSetFromOptions(C)
+  MatSetType(C, "mpiaij")
+#  MatSetFromOptions(C)
   println("nb = ", nb)
   println("comm_size = ", comm_size)
   println("sys_size = ", sys_size)
 
-  PetscMatSetSizes(C, nb*sys_size, nb*sys_size, PetscInt(nb*comm_size*sys_size),PetscInt(nb*comm_size*sys_size));
+  MatSetSizes(C, nb*sys_size, nb*sys_size, PetscInt(nb*comm_size*sys_size),PetscInt(nb*comm_size*sys_size));
 
   # preallocation parameters
   bs = PetscInt(1)
@@ -368,9 +368,9 @@ facts("\n   ---testing matrix functions---") do
   onnzu = Array(PetscInt, 0)  # this is not a symmetric matrix, so unused
 
   println("dnnz = ", dnnz)
-  PetscMatXAIJSetPreallocation(C, bs, dnnz, onnz, dnnzu, onnzu)
+  MatXAIJSetPreallocation(C, bs, dnnz, onnz, dnnzu, onnzu)
 
-#  PetscSetUp(C);
+#  SetUp(C);
 
 
   println("A_julia = ", A_julia)
@@ -378,7 +378,7 @@ facts("\n   ---testing matrix functions---") do
 
   A_julia_t = A_julia.'  # transpose because C is row major
 
-  low, high = PetscMatGetOwnershipRange(C)
+  low, high = MatGetOwnershipRange(C)
   idi = zeros(PetscInt, sys_size)  # row indices
   idj = zeros(PetscInt, sys_size)  # column indices
 
@@ -401,14 +401,14 @@ facts("\n   ---testing matrix functions---") do
 
 #    println("idi = ", idi)
 #    println("idj = ", idj)
-    PetscMatSetValues(C, idi, idj, A_julia_t, PETSC_INSERT_VALUES)
+    MatSetValues(C, idi, idj, A_julia_t, PETSC_INSERT_VALUES)
   end
 
 
-  PetscMatAssemblyBegin(C, PETSC_MAT_FINAL_ASSEMBLY)
-  PetscMatAssemblyEnd(C, PETSC_MAT_FINAL_ASSEMBLY)
+  MatAssemblyBegin(C, PETSC_MAT_FINAL_ASSEMBLY)
+  MatAssemblyEnd(C, PETSC_MAT_FINAL_ASSEMBLY)
 
-  matinfo = PetscMatGetInfo(C, MAT_LOCAL)
+  matinfo = MatGetInfo(C, MAT_LOCAL)
 
   @fact matinfo.mallocs => roughly(0.0)
 
@@ -416,16 +416,16 @@ facts("\n   ---testing matrix functions---") do
 
   println("finished testing preallocation")
 
-  PetscMatZeroEntries(C)
-  cnorm = PetscMatNorm(C, NORM_FROBENIUS)
+  MatZeroEntries(C)
+  cnorm = MatNorm(C, NORM_FROBENIUS)
   @fact cnorm => roughly(0.0, atol=1e-3)  # norm is zero iff matrix is zero
 
   a = rand(3,3)
-  PetscMatZeroEntries(a)
+  MatZeroEntries(a)
   @fact norm(a) => 0.0
 
   a = sprand(10, 10, 0.1)
-  PetscMatZeroEntries(a)
+  MatZeroEntries(a)
   @fact sum(a.nzval) => 0.0
 
   @fact PetscDestroy(A) => 0

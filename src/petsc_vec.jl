@@ -1,4 +1,4 @@
-export PetscVec, PetscVecSetType, PetscVecSetValues, PetscVecAssemblyBegin, PetscVecAssemblyEnd, PetscVecSetSizes, PetscVecGetSize, PetscVecNorm, PetscVecGetValues, PetscVecGetOwnershipRange, PetscVecGetArray, PetscVecRestoreArray, PetscVecGetArrayRead, PetscVecRestoreArrayRead, PetscVecSet, PetscVecSqrtAbs, PetscVecLog, PetscVecExp, PetscVecAbs, PetscVecMax, PetscVecMin, PetscVecCopy, PetscVecDuplicate, PetscVecAXPY, PetscVecAXPBY, PetscVecAYPX, PetscVecWAXPY, PetscVecMAXPY, PetscVecAXPBYPCZ, PetscVecScale, PetscVecDot, PetscVecTDot, PetscVecSum, PetscVecSwap, PetscVecReciprocal, PetscVecShift, PetscVecPointwiseMult, PetscVecPointwiseDivide, set_values1!, get_values1!
+export PetscVec, VecSetType, VecSetValues, VecAssemblyBegin, VecAssemblyEnd, VecSetSizes, VecGetSize, VecNorm, VecGetValues, VecGetOwnershipRange, VecGetArray, VecRestoreArray, VecGetArrayRead, VecRestoreArrayRead, VecSet, VecSqrtAbs, VecLog, VecExp, VecAbs, VecMax, VecMin, VecCopy, VecDuplicate, VecAXPY, VecAXPBY, VecAYPX, VecWAXPY, VecMAXPY, VecAXPBYPCZ, VecScale, VecDot, VecTDot, VecSum, VecSwap, VecReciprocal, VecShift, VecPointwiseMult, VecPointwiseDivide, set_values1!, get_values1!
 
 
 type PetscVec
@@ -26,7 +26,7 @@ end
   """
   function PetscVec(mglobal::Integer, comm::MPI_Comm; mlocal=PETSC_DECIDE)
     vec = PetscVec(comm)
-    PetscVecSetSizes(vec::PetscVec,nglobal, mlocal)
+    VecSetSizes(vec::PetscVec,nglobal, mlocal)
 
     return vec
   end
@@ -37,7 +37,7 @@ end
   """
   function PetscVec(mglobal::Integer, format, comm::MPI_Comm; mlocal=PETSC_DECIDE)
     vec = PetscVec(mglobal, comm, mlocal=mlocal)
-    PetscVecSetType(vec, format)
+    VecSetType(vec, format)
     return vec
   end
 
@@ -50,7 +50,7 @@ end
 #    println("VecDestroy called")
   end
 
-  function PetscVecSetType(vec::PetscVec,name)
+  function VecSetType(vec::PetscVec,name)
     err = ccall((:VecSetType,  libpetsclocation), PetscErrorCode, (Ptr{Void}, Cstring), vec.pobj,name);
   end
 
@@ -67,7 +67,7 @@ end
     return vec
   end
 
-  function PetscVecSetValues(vec::PetscVec,idx::Array{PetscInt},array::Array{PetscScalar},flag::Integer)
+  function VecSetValues(vec::PetscVec,idx::Array{PetscInt},array::Array{PetscScalar},flag::Integer)
 
     err = ccall( ( :VecSetValues,  libpetsclocation), PetscErrorCode, 
                  (Ptr{Void},PetscInt ,Ptr{PetscInt},Ptr{PetscScalar},Int32), 
@@ -75,14 +75,14 @@ end
     return err
   end
 
-  function PetscVecSetValues(vec::PetscVec,idx::Array{PetscInt},array::Array{PetscScalar})
-    PetscVecSetValues(vec,idx,array,PETSC_INSERT_VALUES)
+  function VecSetValues(vec::PetscVec,idx::Array{PetscInt},array::Array{PetscScalar})
+    VecSetValues(vec,idx,array,PETSC_INSERT_VALUES)
   end
 
-  function PetscVecSetValues(vec::PetscVec,array::Array{PetscScalar})
+  function VecSetValues(vec::PetscVec,array::Array{PetscScalar})
     idx = Array(PetscInt,length(array))
     for i=1:length(array);  idx[i] = i-1;  end
-    PetscVecSetValues(vec,idx,array,PETSC_INSERT_VALUES)
+    VecSetValues(vec,idx,array,PETSC_INSERT_VALUES)
   end
 
 
@@ -93,7 +93,7 @@ end
       idx[i] -= 1
     end
 
-    err = PetscVecSetValues(vec, idx, vals, flag)
+    err = VecSetValues(vec, idx, vals, flag)
 
     for i=1:length(idx)
       idx[i] += 1
@@ -121,7 +121,7 @@ end
       idx[i] -= 1
     end
 
-    err = PetscVecGetValues(vec, idx, vals)
+    err = VecGetValues(vec, idx, vals)
 
     for i=1:length(idx)
       idx[i] += 1
@@ -140,15 +140,15 @@ end
   end
 
 
-  function PetscVecAssemblyBegin(obj::PetscVec)
+  function VecAssemblyBegin(obj::PetscVec)
     err = ccall( ( :VecAssemblyBegin,  libpetsclocation), PetscErrorCode, (Ptr{Void},), obj.pobj);
   end
 
-  function PetscVecAssemblyEnd(obj::PetscVec)
+  function VecAssemblyEnd(obj::PetscVec)
     err = ccall( ( :VecAssemblyEnd,  libpetsclocation), PetscErrorCode,(Ptr{Void},), obj.pobj);
   end
 
-  function PetscVecSetSizes(vec::PetscVec,n::PetscInt, N::PetscInt)
+  function VecSetSizes(vec::PetscVec,n::PetscInt, N::PetscInt)
     err = ccall( ( :VecSetSizes,  libpetsclocation), PetscErrorCode, (Ptr{Void}, PetscInt, PetscInt), vec.pobj,n,N);
   end
 
@@ -156,23 +156,23 @@ end
     err = ccall( ( :VecView,  libpetsclocation), PetscErrorCode, (Ptr{Void},Int64),obj.pobj,0);
   end
 
-  function PetscVecGetSize(obj::PetscVec)
+  function VecGetSize(obj::PetscVec)
     n = Array(PetscInt, 1)
     err = ccall( ( :VecGetSize,  libpetsclocation), PetscErrorCode, (Ptr{Void},Ptr{PetscInt}), obj.pobj,n);
     return n[1]
   end
 
-  function PetscVecNorm(obj::PetscVec,normtype::Integer)
+  function VecNorm(obj::PetscVec,normtype::Integer)
     n = Array(PetscReal,1)
     err = ccall( ( :VecNorm,  libpetsclocation), PetscScalar, (Ptr{Void},Int32,Ptr{PetscReal}), obj.pobj,normtype, n);
     return n[1]
   end
 
-  function PetscVecNorm(obj::PetscVec)
-    return PetscVecNorm(obj,PETSC_NORM_2)
+  function VecNorm(obj::PetscVec)
+    return VecNorm(obj,PETSC_NORM_2)
   end
 
-function PetscVecGetValues(vec::PetscVec, ni::Integer, ix::AbstractArray{PetscInt,1}, y::AbstractArray{PetscScalar,1})
+function VecGetValues(vec::PetscVec, ni::Integer, ix::AbstractArray{PetscInt,1}, y::AbstractArray{PetscScalar,1})
 
      # need indices to be PetscInt
 #     ix_local = Array(PetscInt, ni)
@@ -185,12 +185,12 @@ function PetscVecGetValues(vec::PetscVec, ni::Integer, ix::AbstractArray{PetscIn
     return nothing
 end
 
-function PetscVecGetValues(vec::PetscVec,idx::AbstractArray{PetscInt,1}, y::AbstractArray{PetscScalar, 1})
+function VecGetValues(vec::PetscVec,idx::AbstractArray{PetscInt,1}, y::AbstractArray{PetscScalar, 1})
 
-  PetscVecGetValues(vec, length(idx), idx, y)
+  VecGetValues(vec, length(idx), idx, y)
 end
 
-function PetscVecGetOwnershipRange(vec::PetscVec)
+function VecGetOwnershipRange(vec::PetscVec)
     low = Array(PetscInt, 1)
     high = Array(PetscInt, 1)
 
@@ -202,36 +202,36 @@ end
 
 # new functions
 
-function PetscVecGetArray(vec::PetscVec)
+function VecGetArray(vec::PetscVec)
 # gets a pointer to the data underlying a Petsc vec, turns it into a Julia
 # array
 # ptr_arr must be passed into PetscVecRestoreArray
     ptr_arr = Array(Ptr{PetscScalar}, 1)
     ccall((:VecGetArray,petsc),PetscErrorCode,(Ptr{Void}, Ptr{Ptr{PetscScalar}}),vec.pobj, ptr_arr)
 
-    first, last = PetscVecGetOwnershipRange(vec)
+    first, last = VecGetOwnershipRange(vec)
     len = last - first
     arr = pointer_to_array(ptr_arr[1], len)
     return arr, ptr_arr
 end
 
 
-function PetscVecRestoreArray(vec::PetscVec, ptr_arr::Array{Ptr{PetscScalar}, 1})
+function VecRestoreArray(vec::PetscVec, ptr_arr::Array{Ptr{PetscScalar}, 1})
     ccall((:VecRestoreArray,petsc),PetscErrorCode,(Ptr{Void}, Ptr{Ptr{PetscScalar}}),vec.pobj, ptr_arr)
 end
 
 
-function PetscVecGetArrayRead(vec::PetscVec)
+function VecGetArrayRead(vec::PetscVec)
     ptr_arr = Array(Ptr{PetscScalar}, 1)
     ccall((:VecGetArrayRead,petsc),PetscErrorCode,(Ptr{Void}, Ptr{Ptr{PetscScalar}}),vec.pobj, ptr_arr)
 
-    first, last = PetscVecGetOwnershipRange(vec)
+    first, last = VecGetOwnershipRange(vec)
     len = last - first
     arr = pointer_to_array(ptr_arr[1], len)
     return arr, ptr_arr
 end
 
-function PetscVecRestoreArrayRead(vec::PetscVec, ptr_arr::Array{Ptr{PetscScalar}, 1})
+function VecRestoreArrayRead(vec::PetscVec, ptr_arr::Array{Ptr{PetscScalar}, 1})
 
     ccall((:VecRestoreArrayRead,petsc),PetscErrorCode,(Ptr{Void}, Ptr{Ptr{PetscScalar}}),vec.pobj, ptr_arr)
 #    ccall((:VecRestoreArrayRead,petsc),PetscErrorCode,(Vec,Ptr{Ptr{PetscScalar}}),arg1,arg2)
@@ -239,29 +239,29 @@ end
 
 
 
-function PetscVecSet(vec::PetscVec, val::PetscScalar)
+function VecSet(vec::PetscVec, val::PetscScalar)
     ccall((:VecSet,petsc),PetscErrorCode,(Ptr{Void},PetscScalar), vec.pobj, val)
 end
 
 
-function PetscVecSqrtAbs(vec::PetscVec)
+function VecSqrtAbs(vec::PetscVec)
     ccall((:VecSqrtAbs,petsc),PetscErrorCode,(Ptr{Void},), vec.pobj)
 end
 
-function PetscVecLog(vec::PetscVec)
+function VecLog(vec::PetscVec)
     ccall((:VecLog,petsc),PetscErrorCode,(Ptr{Void},),vec.pobj)
 end
 
-function PetscVecExp(vec::PetscVec)
+function VecExp(vec::PetscVec)
     ccall((:VecExp,petsc),PetscErrorCode,(Ptr{Void},),vec.pobj)
 end
 
-function PetscVecAbs(vec::PetscVec)
+function VecAbs(vec::PetscVec)
     ccall((:VecAbs,petsc),PetscErrorCode,(Ptr{Void},),vec.pobj)
 end
 
 
-function PetscVecMax(vec::PetscVec)
+function VecMax(vec::PetscVec)
     r = Array(PetscReal, 1) # max value
     idx = Array(PetscInt, 1)  # index of max value
     ccall((:VecMax,petsc),PetscErrorCode,(Ptr{Void}, Ptr{PetscInt},Ptr{PetscReal}), vec.pobj, idx, r)
@@ -269,7 +269,7 @@ function PetscVecMax(vec::PetscVec)
     return r[1], idx[1]
 end
 
-function PetscVecMin(vec::PetscVec)
+function VecMin(vec::PetscVec)
     r = Array(PetscReal, 1) # min value
     idx = Array(PetscInt, 1)  # index of min value
  
@@ -278,20 +278,20 @@ function PetscVecMin(vec::PetscVec)
     return r[1], idx[1]
 end
 
-function PetscVecReciprocal(vec::PetscVec)
+function VecReciprocal(vec::PetscVec)
     ccall((:VecReciprocal,petsc),PetscErrorCode,(Ptr{Void},),vec.pobj)
 end
 
-function PetscVecShift(vec::PetscVec, a::PetscScalar)
+function VecShift(vec::PetscVec, a::PetscScalar)
     ccall((:VecShift,petsc),PetscErrorCode,(Ptr{Void},PetscScalar), vec.pobj, a)
 end
 
 
-function PetscVecPointwiseMult(w::PetscVec, x::PetscVec,y::PetscVec)
+function VecPointwiseMult(w::PetscVec, x::PetscVec,y::PetscVec)
     ccall((:VecPointwiseMult,petsc),PetscErrorCode,(Ptr{Void}, Ptr{Void}, Ptr{Void}), w.pobj, x.pobj, y.pobj)
 end
 
-function PetscVecPointwiseDivide(w::PetscVec, x::PetscVec, y::PetscVec)
+function VecPointwiseDivide(w::PetscVec, x::PetscVec, y::PetscVec)
     ccall((:VecPointwiseDivide,petsc),PetscErrorCode,(Ptr{Void}, Ptr{Void}, Ptr{Void}), w.pobj, x.pobj, y.pobj)
 end
 
@@ -300,11 +300,11 @@ end
 
 
 
-function PetscVecCopy(vec::PetscVec , vec2::PetscVec)
+function VecCopy(vec::PetscVec , vec2::PetscVec)
     ccall((:VecCopy,petsc),PetscErrorCode,(Ptr{Void}, Ptr{Void}), vec.pobj, vec2.pobj)
 end
 
-function PetscVecDuplicate( vec::PetscVec)
+function VecDuplicate( vec::PetscVec)
     ptr_arr = Array(Ptr{Void}, 1)
 
     ccall((:VecDuplicate,petsc),PetscErrorCode,( Ptr{Void}, Ptr{Ptr{Void}}), vec.pobj, ptr_arr)
@@ -315,38 +315,38 @@ end
 
 
 # Some vector linear algebra
-function PetscVecAXPY( vec1::PetscVec, a::PetscScalar, vec2::PetscVec)
+function VecAXPY( vec1::PetscVec, a::PetscScalar, vec2::PetscVec)
     ccall((:VecAXPY,petsc),PetscErrorCode,(Ptr{Void},PetscScalar,Ptr{Void}), vec1.pobj, a, vec2.pobj)
 end
 
-function PetscVecAXPBY(vec1::PetscVec, a::PetscScalar, b::PetscScalar, vec2::PetscVec)
+function VecAXPBY(vec1::PetscVec, a::PetscScalar, b::PetscScalar, vec2::PetscVec)
     ccall((:VecAXPBY,petsc),PetscErrorCode,(Ptr{Void},PetscScalar,PetscScalar,Ptr{Void}),vec1.pobj, a, b, vec2.pobj)
 end
 
-function PetscVecMAXPY(vec1::PetscVec, n::PetscInt, a::AbstractArray{PetscScalar, 1}, x::AbstractArray{Ptr{Void}, 1})
+function VecMAXPY(vec1::PetscVec, n::PetscInt, a::AbstractArray{PetscScalar, 1}, x::AbstractArray{Ptr{Void}, 1})
 # the vector x must contains the pointers from the PetscVec objects, not the PetscVec objects themselves
 
     ccall((:VecMAXPY,petsc),PetscErrorCode,(Ptr{Void},PetscInt,Ptr{PetscScalar},Ptr{Ptr{Void}}),vec1.pobj, n, a, x)
 end
 
-function PetscVecAYPX(vec1::PetscVec, a::PetscScalar, vec2::PetscVec)
+function VecAYPX(vec1::PetscVec, a::PetscScalar, vec2::PetscVec)
     ccall((:VecAYPX,petsc),PetscErrorCode,(Ptr{Void},PetscScalar,Ptr{Void}),vec1.pobj, a, vec2.pobj)
 end
 
-function PetscVecWAXPY(w::PetscVec, a::PetscScalar, x::PetscVec, y::PetscVec)
+function VecWAXPY(w::PetscVec, a::PetscScalar, x::PetscVec, y::PetscVec)
     ccall((:VecWAXPY,petsc),PetscErrorCode,(Ptr{Void},PetscScalar,Ptr{Void},Ptr{Void}), w.pobj, a, x.pobj, y.pobj)
 end
 
-function PetscVecAXPBYPCZ(z::PetscVec, alpha::PetscScalar, beta::PetscScalar, gamma::PetscScalar, x::PetscVec, y::PetscVec)
+function VecAXPBYPCZ(z::PetscVec, alpha::PetscScalar, beta::PetscScalar, gamma::PetscScalar, x::PetscVec, y::PetscVec)
     ccall((:VecAXPBYPCZ,petsc),PetscErrorCode,(Ptr{Void},PetscScalar,PetscScalar,PetscScalar,Ptr{Void},Ptr{Void}), z.pobj, alpha,beta, gamma, x.pobj, y.pobj)
 end
 
 
-function PetscVecScale(vec::PetscVec, a::PetscScalar)
+function VecScale(vec::PetscVec, a::PetscScalar)
     ccall((:VecScale,petsc),PetscErrorCode,(Ptr{Void},PetscScalar), vec.pobj, a)
 end
 
-function PetscVecDot(x::PetscVec, y::PetscVec)
+function VecDot(x::PetscVec, y::PetscVec)
     r = Array(PetscScalar, 1)
     err = ccall((:VecDot,petsc),PetscErrorCode,( Ptr{Void}, Ptr{Void}, Ptr{PetscScalar}), x.pobj, y.pobj, r)
 
@@ -354,7 +354,7 @@ function PetscVecDot(x::PetscVec, y::PetscVec)
     return r[1]
 end
 
-function PetscVecTDot(x::PetscVec, y::PetscVec)
+function VecTDot(x::PetscVec, y::PetscVec)
     r = Array(PetscScalar, 1)
     ccall((:VecTDot,petsc),PetscErrorCode,(Ptr{Void}, Ptr{Void},Ptr{PetscScalar}), x.pobj, y.pobj, r)
 
@@ -362,14 +362,14 @@ function PetscVecTDot(x::PetscVec, y::PetscVec)
 end
 
 
-function PetscVecSum(vec::PetscVec)
+function VecSum(vec::PetscVec)
     r = Array(PetscScalar, 1)
     ccall((:VecSum,petsc),PetscErrorCode,(Ptr{Void},Ptr{PetscScalar}),vec.pobj, r)
     return r[1]
 end
 
 
-function PetscVecSwap(x::PetscVec, y::PetscVec)
+function VecSwap(x::PetscVec, y::PetscVec)
     ccall((:VecSwap,petsc),PetscErrorCode,(Ptr{Void}, Ptr{Void}), x.pobj, y.pobj)
 
 end

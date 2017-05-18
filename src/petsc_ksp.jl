@@ -1,7 +1,7 @@
 
-export KSP, KSPSetOperators, KSPSetFromOptions, KSPSolve,  KSPSetUp
+export KSP, SetOperators, SetFromOptions, KSPSolve,  SetUp
 
-export KSPGetConvergedReason, PetscView, KSPSetType, KSPGetType, KSPSetTolerances, KSPGetTolerances, KSPSetInitialGuessNonzero, KSPGetInitialGuessNonzero, KSPGetResidualNorm
+export GetConvergedReason, PetscView, SetType, GetType, SetTolerances, GetTolerances, SetInitialGuessNonzero, GetInitialGuessNonzero, GetResidualNorm
 
 type KSP
   pobj::Ptr{Void}
@@ -33,12 +33,12 @@ end
 
 
 
-function KSPSetOperators(ksp::KSP,Amat::PetscMat,Pmat::PetscMat)
+function SetOperators(ksp::KSP,Amat::PetscMat,Pmat::PetscMat)
    err = ccall((:KSPSetOperators,petsc),PetscErrorCode,(Ptr{Void},Ptr{Void},Ptr{Void}), ksp.pobj, Amat.pobj, Pmat.pobj)
 end
 
 
-function KSPSetFromOptions(ksp::KSP)
+function SetFromOptions(ksp::KSP)
     ccall((:KSPSetFromOptions,petsc),PetscErrorCode,(Ptr{Void},),ksp.pobj)
 end
 
@@ -46,11 +46,11 @@ function KSPSolve(ksp::KSP, b::PetscVec, x::PetscVec)
     err = ccall((:KSPSolve,petsc),PetscErrorCode,(Ptr{Void},Ptr{Void},Ptr{Void}), ksp.pobj, b.pobj, x.pobj)
 end
 
-function KSPSetUp(ksp::KSP)
+function SetUp(ksp::KSP)
     err = ccall((:KSPSetUp,petsc),PetscErrorCode,(Ptr{Void},), ksp.pobj)
 end
 
-function KSPGetConvergedReason(ksp::KSP)
+function GetConvergedReason(ksp::KSP)
     reason = Array(KSPConvergedReason, 1)
     ccall((:KSPGetConvergedReason,petsc),PetscErrorCode,(Ptr{Void},Ptr{KSPConvergedReason}), ksp.pobj, reason)
 
@@ -58,11 +58,11 @@ function KSPGetConvergedReason(ksp::KSP)
 end
 
 
-function KSPSetType(ksp::KSP, ksptype::KSPType)
+function SetType(ksp::KSP, ksptype::KSPType)
     ccall((:KSPSetType,petsc),PetscErrorCode,(Ptr{Void},Cstring), ksp.pobj, ksptype)
 end
 
-function KSPGetType(ksp::KSP)
+function GetType(ksp::KSP)
     ksptype = Array(Ptr{UInt8}, 1)
     ccall((:KSPGetType,petsc),PetscErrorCode,(Ptr{Void}, Ptr{Ptr{UInt8}}), ksp.pobj, ksptype)
 
@@ -70,12 +70,12 @@ function KSPGetType(ksp::KSP)
 end
 
 
-function KSPSetTolerances(ksp::KSP,rtol::PetscReal, abstol::PetscReal, dtol::PetscReal, maxits::PetscInt)
+function SetTolerances(ksp::KSP,rtol::PetscReal, abstol::PetscReal, dtol::PetscReal, maxits::PetscInt)
 
     ccall((:KSPSetTolerances,petsc),PetscErrorCode,(Ptr{Void}, PetscReal, PetscReal, PetscReal, PetscInt), ksp.pobj, rtol, abstol, dtol, maxits)
 end
 
-function KSPGetTolerances(ksp::KSP)
+function GetTolerances(ksp::KSP)
     rtol = Array(PetscReal,1)
     abstol = Array(PetscReal,1)
     dtol = Array(PetscReal,1)
@@ -86,18 +86,18 @@ function KSPGetTolerances(ksp::KSP)
     return rtol[1], abstol[1], dtol[1], maxits[1]
 end
 
-function KSPSetInitialGuessNonzero(ksp::KSP, flg::PetscBool)
+function SetInitialGuessNonzero(ksp::KSP, flg::PetscBool)
     ccall((:KSPSetInitialGuessNonzero,petsc),PetscErrorCode,(Ptr{Void},PetscBool), ksp.pobj, flg)
 end
 
-function KSPGetInitialGuessNonzero(ksp::KSP)
+function GetInitialGuessNonzero(ksp::KSP)
     flg_arr = Array(PetscBool, 1)
     ccall((:KSPGetInitialGuessNonzero,petsc),PetscErrorCode,(Ptr{Void}, Ptr{PetscBool}), ksp.pobj, flg_arr)
     return flg_arr[1]
 end
 
 
-function KSPGetResidualNorm(ksp::KSP)
+function GetResidualNorm(ksp::KSP)
    rnorm = Array(PetscReal, 1)
    ccall((:KSPGetResidualNorm,petsc),PetscErrorCode,(Ptr{Void}, Ptr{PetscReal}),ksp.pobj, rnorm)
 
@@ -110,7 +110,7 @@ end
 
 ### new function
 # not tested
-function KSPSetReusePreconditioner(arg1::KSP,arg2::PetscBool)
+function SetReusePreconditioner(arg1::KSP,arg2::PetscBool)
     ccall((:KSPSetReusePreconditioner,petsc),PetscErrorCode,(KSP,PetscBool),arg1,arg2)
 end
 

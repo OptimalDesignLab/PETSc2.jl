@@ -3,39 +3,39 @@ facts("\n   ---testing KSP solvers---") do
 
 
   b = PetscVec(comm);
-  PetscVecSetType(b, "mpi");
-  PetscVecSetSizes(b,sys_size, PetscInt(comm_size*sys_size));
+  VecSetType(b, "mpi");
+  VecSetSizes(b,sys_size, PetscInt(comm_size*sys_size));
 
-  low, high = PetscVecGetOwnershipRange(b)
+  low, high = VecGetOwnershipRange(b)
   b_global_indices = Array(low:PetscInt(high - 1))
  
 
   x = PetscVec(comm);
-  PetscVecSetType(x,"mpi");
-  PetscVecSetSizes(x,sys_size, PetscInt(comm_size*sys_size));
+  VecSetType(x,"mpi");
+  VecSetSizes(x,sys_size, PetscInt(comm_size*sys_size));
 
-  low, high = PetscVecGetOwnershipRange(x)
+  low, high = VecGetOwnershipRange(x)
   x_global_indices = Array(low:PetscInt(high - 1))
  
 
   for i=1:sys_size
     idxm = [ b_global_indices[i] ]   # index
     val = [ rhs[i] ]  # value
-    PetscVecSetValues(b, idxm, val, PETSC_INSERT_VALUES)
+    VecSetValues(b, idxm, val, PETSC_INSERT_VALUES)
   end
 
-  PetscVecAssemblyBegin(b)
-  PetscVecAssemblyEnd(b)
+  VecAssemblyBegin(b)
+  VecAssemblyEnd(b)
 
 
 
   A = PetscMat(comm)
-  PetscMatSetType(A, "mpiaij")
+  MatSetType(A, "mpiaij")
 
-  PetscMatSetSizes(A,sys_size,sys_size,PetscInt(comm_size*sys_size),PetscInt(comm_size*sys_size));
-  PetscSetUp(A);
+  MatSetSizes(A,sys_size,sys_size,PetscInt(comm_size*sys_size),PetscInt(comm_size*sys_size));
+  SetUp(A);
 
-  low, high = PetscMatGetOwnershipRange(A)
+  low, high = MatGetOwnershipRange(A)
   mat_global_indices = Array(low:PetscInt(high - 1))
  
 
@@ -43,22 +43,22 @@ facts("\n   ---testing KSP solvers---") do
     for j = 1:sys_size
       idxm = [ mat_global_indices[i] ]  # row index
       idxn = [ mat_global_indices[j] ]  # column index
-      PetscMatSetValues(A,idxm, idxn, [A_julia[i,j]],PETSC_INSERT_VALUES);
+      MatSetValues(A,idxm, idxn, [A_julia[i,j]],PETSC_INSERT_VALUES);
     end
   end
 
-  PetscMatAssemblyBegin(A,PETSC_MAT_FINAL_ASSEMBLY);
-  PetscMatAssemblyEnd(A,PETSC_MAT_FINAL_ASSEMBLY);
+  MatAssemblyBegin(A,PETSC_MAT_FINAL_ASSEMBLY);
+  MatAssemblyEnd(A,PETSC_MAT_FINAL_ASSEMBLY);
 
 
 
 # perform solve
 ksp = KSP(comm)
-KSPSetOperators(ksp, A, A)
-KSPSetFromOptions(ksp)
-KSPSetUp(ksp)
+SetOperators(ksp, A, A)
+SetFromOptions(ksp)
+SetUp(ksp)
 KSPSolve(ksp, b, x)
-reason = KSPGetConvergedReason(ksp)
+reason = GetConvergedReason(ksp)
 
 println("KSP convergence reason = ", reason)
 @fact reason => greater_than(0)  # convergence
@@ -73,7 +73,7 @@ x_copy = zeros(PetscScalar, sys_size)
 #  idx[i] = i-1
 #end
 
-PetscVecGetValues(x, sys_size, x_global_indices, x_copy)
+VecGetValues(x, sys_size, x_global_indices, x_copy)
 println("x_copy = ", x_copy)
 println("x_julia = ", x_julia)
 for i=1:sys_size
@@ -90,7 +90,7 @@ println("   \n--- Testing LGMRES --- ")
 
 # perform solve
 ksp = KSP(comm)
-KSPSetOperators(ksp, A, A)
+SetOperators(ksp, A, A)
 
 # test PC
 println("   \n---Testing PC Options ---")
@@ -104,11 +104,11 @@ println("pctype = ", pctype)
 
 ### Do some KSP setup
 
-KSPSetFromOptions(ksp)
-KSPSetTolerances(ksp, rtol, abstol, dtol, maxits)
-KSPSetInitialGuessNonzero(ksp, PetscBool(true))
-KSPSetType(ksp, PETSc.KSPLGMRES)
-KSPSetUp(ksp)
+SetFromOptions(ksp)
+SetTolerances(ksp, rtol, abstol, dtol, maxits)
+SetInitialGuessNonzero(ksp, PetscBool(true))
+SetType(ksp, PETSc.KSPLGMRES)
+SetUp(ksp)
 
 ### More PC testing
 println("getting sub KSP objects")
@@ -157,26 +157,26 @@ println("tmp = ", tmp)
 
 
 KSPSolve(ksp, b, x)
-reason = KSPGetConvergedReason(ksp)
-ksptype = KSPGetType(ksp)
-println("finished calling KSPGetType")
+reason = GetConvergedReason(ksp)
+ksptype = GetType(ksp)
+println("finished calling GetType")
 println("typeof(ksptype) = ", typeof(ksptype))
 println("ksptype = ", ksptype)
 
 @fact ksptype => PETSc.KSPLGMRES
 
 
-rtol_ret, abstol_ret, dtol_ret, maxits_ret = KSPGetTolerances(ksp)
+rtol_ret, abstol_ret, dtol_ret, maxits_ret = GetTolerances(ksp)
 
 @fact rtol_ret => roughly(rtol)
 @fact abstol_ret => roughly(abstol)
 @fact dtol_ret => roughly(dtol)
 @fact maxits_ret => maxits
-@fact KSPGetInitialGuessNonzero(ksp) => true
+@fact GetInitialGuessNonzero(ksp) => true
 println("KSP convergence reason = ", reason)
 @fact reason => greater_than(0)  # convergence
 
-rnorm = KSPGetResidualNorm(ksp)
+rnorm = GetResidualNorm(ksp)
 @fact rnorm => less_than(abstol)
 PetscView(ksp)
 
@@ -188,7 +188,7 @@ x_copy = zeros(PetscScalar, sys_size)
 #  idx[i] = i-1
 #end
 
-PetscVecGetValues(x, sys_size, x_global_indices, x_copy)
+VecGetValues(x, sys_size, x_global_indices, x_copy)
 println("x_copy = ", x_copy)
 println("x_julia = ", x_julia)
 for i=1:sys_size

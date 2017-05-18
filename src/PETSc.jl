@@ -17,7 +17,7 @@ include("petsc_error.jl")  # error handling
 import Base.show
 
 # export all names
-export PetscInitialize, PetscInitialized, getPETSC_COMM_SELF, PetscView, PetscIS, PetscDestroy, PetscISSetType, PetscISGetSizePetscISGetIndices, PetscDataTypeFromString, PetscDataTypeGetSize, PetscFinalize
+export PetscInitialize, PetscInitialized, getPETSC_COMM_SELF, PetscView, IS, PetscDestroy, ISSetType, ISGetSize, ISGetIndices, PetscDataTypeFromString, PetscDataTypeGetSize, PetscFinalize
 
 
 
@@ -155,9 +155,9 @@ function PetscView(obj)
   PetscView(obj,0)
 end
 
-type PetscIS
+type IS
   pobj::Ptr{Void}
-  function PetscIS(comm::MPI_Comm)
+  function IS(comm::MPI_Comm)
 #    comm = PETSC_COMM_SELF();
     is = Array(Int64,1)
     err = ccall( (:ISCreate,  libpetsclocation),Int32,(comm_type,Ptr{Void}),comm,is)
@@ -171,7 +171,7 @@ type PetscIS
   end
 end
 
-  function PetscDestroy(is::PetscIS)
+  function PetscDestroy(is::IS)
     if (is.pobj != 0) then
       err = ccall( ( :ISDestroy,  libpetsclocation),PetscErrorCode,(Ptr{Void},), &is.pobj);
     end
@@ -180,31 +180,31 @@ end
     return 0
   end
 
-  function PetscIS(indices::Array{PetscInt})
-    is = PetscIS()
+  function IS(indices::Array{PetscInt})
+    is = IS()
     err = ccall( ( :ISSetType,  libpetsclocation),PetscErrorCode,(Ptr{Void},Cstring), is.pobj,"general");
     err = ccall( (:ISGeneralSetIndices,  libpetsclocation), PetscErrorCode, (Ptr{Void}, PetscInt, Ptr{PetscInt},Int32),is.pobj,length(indices), indices, PETSC_COPY_VALUES)
     return is
   end
 
-  function PetscISSetType(vec::PetscIS, name)
+  function ISSetType(vec::IS, name)
     err = ccall( (:ISSetType,  libpetsclocation),PetscErrorCode,(Ptr{Void},Cstring), vec.pobj,name);
   end
 
-  function PetscView(obj::PetscIS,viewer)
+  function PetscView(obj::IS,viewer)
   # what is the viewer argument used for?
    err = ccall( ( :ISView,  libpetsclocation),PetscErrorCode,(Ptr{Void},Int64),obj.pobj,0);
   end
 
-  function PetscISGetSize(obj::PetscIS)
+  function ISGetSize(obj::IS)
     n = Array(PetscInt, 1)
     err = ccall( ( :ISGetSize,  libpetsclocation), PetscErrorCode,(Ptr{Void}, Ptr{PetscInt}), obj.pobj, n);
     return n[1]
   end
 
   # this should really take the indices array as an arguments
-  function PetscISGetIndices(obj::PetscIS)
-    len = PetscISGetSize(obj)
+  function ISGetIndices(obj::IS)
+    len = ISGetSize(obj)
     indices = Array(PetscInt,len)
     err = ccall( (:ISGetIndicesCopy,  libpetsclocation), PetscErrorCode,(Ptr{Void},Ptr{PetscInt}),obj.pobj,indices);
 

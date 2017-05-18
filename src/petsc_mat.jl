@@ -1,4 +1,4 @@
-export PetscMat, PetscMatSetType, PetscSetUp, PetscMatSetValues, PetscMatAssemblyBegin, PetscMatAssemblyEnd, PetscMatSetSizes, PetscMatGetSize, PetscMatGetValues, PetscMatGetOwnershipRange, PetscMatXAIJSetPreallocation, PetscMatMPIAIJSetPreallocation, PetscMatSetFromOptions, PetscMatGetInfo, PetscMatMatMult, PetscMatNorm, PetscMatZeroEntries, PetscMatSetValuesBlocked, MatSetOption, MatCreateShell, MatShellSetOperation, MatShellGetContext, MatGetType, MatCreateTranspose, MatTranspose
+export PetscMat, MatSetType, SetUp, MatSetValues, MatAssemblyBegin, MatAssemblyEnd, MatSetSizes, MatGetSize, MatGetValues, MatGetOwnershipRange, MatXAIJSetPreallocation, MatMPIAIJSetPreallocation, MatSetFromOptions, MatGetInfo, MatMatMult, MatNorm, MatZeroEntries, MatSetValuesBlocked, MatSetOption, MatCreateShell, MatShellSetOperation, MatShellGetContext, MatGetType, MatCreateTranspose, MatTranspose
 
 
 type PetscMat  <: AbstractArray{PetscScalar, 2}
@@ -112,7 +112,7 @@ end
   end
 
 
-immutable PetscMatInfo
+immutable MatInfo
     block_size::PetscLogDouble
     nz_allocated::PetscLogDouble
     nz_used::PetscLogDouble
@@ -124,13 +124,13 @@ immutable PetscMatInfo
     fill_ratio_needed::PetscLogDouble
     factor_mallocs::PetscLogDouble
 
-    function PetscMatInfo()  # incomplete initialization
+    function MatInfo()  # incomplete initialization
       return new()
     end
 end
 
 
-function show(io::IO, obj::PetscMatInfo)
+function show(io::IO, obj::MatInfo)
 # print the fields of PetscMatInfo
 #  println("PetscMatInfo:")
   println(io, "  block_size : ", obj.block_size)
@@ -145,18 +145,18 @@ function show(io::IO, obj::PetscMatInfo)
   println(io, "  factor_mallocs : ", obj.factor_mallocs)
 end
 
-  function PetscMatSetFromOptions(mat::PetscMat)
+  function MatSetFromOptions(mat::PetscMat)
     ccall((:MatSetFromOptions,petsc),PetscErrorCode,(Ptr{Void},), mat.pobj)
 
   end
 
 
-  function PetscMatSetType(vec::PetscMat,name)
+  function MatSetType(vec::PetscMat,name)
     err = ccall( (:MatSetType,  libpetsclocation), PetscErrorCode,(Ptr{Void}, Cstring), vec.pobj,name);
 
   end
 
-  function PetscSetUp(vec::PetscMat)
+  function SetUp(vec::PetscMat)
     err = ccall( ( :MatSetUp,  libpetsclocation), PetscErrorCode, (Ptr{Void},), vec.pobj);
 
     MatSetOption(vec, MAT_ROW_ORIENTED, PETSC_TRUE)  # julia data is column-major
@@ -167,7 +167,7 @@ end
   PETSC_MAT_FINAL_ASSEMBLY = 0
 =#
 
-  function PetscMatSetValues(vec::PetscMat,idi::Array{PetscInt},idj::Array{PetscInt},array::Array{PetscScalar},flag::Integer)
+  function MatSetValues(vec::PetscMat,idi::Array{PetscInt},idj::Array{PetscInt},array::Array{PetscScalar},flag::Integer)
     # remember, only matrices can be inserted into a Petsc matrix
     # if array is a 3 by 3, then idi and idj are vectors of length 3
 #    idi = idi
@@ -182,7 +182,7 @@ end
     return err
   end
 
-  function PetscMatSetValuesBlocked(mat::PetscMat, idi::Array{PetscInt}, idj::Array{PetscInt}, v::Array{PetscScalar}, flag::Integer)
+  function MatSetValuesBlocked(mat::PetscMat, idi::Array{PetscInt}, idj::Array{PetscInt}, v::Array{PetscScalar}, flag::Integer)
 
       err = ccall((:MatSetValuesBlocked, libpetsclocation), PetscErrorCode,(Ptr{Void},PetscInt,Ptr{PetscInt},PetscInt,Ptr{PetscInt},Ptr{PetscScalar}, Int32),mat.pobj, length(idi), idi, length(idj), idj, v,flag)
 
@@ -216,7 +216,7 @@ end
       idxn[i] -= 1
     end
 
-    err = PetscMatSetValues(mat, idxm, idxn, vals, flag)
+    err = MatSetValues(mat, idxm, idxn, vals, flag)
 
     for i=1:length(idxm)
       idxm[i] += 1
@@ -290,7 +290,7 @@ end
       idxn[i] -= 1
     end
 
-    err = PetscMatGetValues(mat, idxm, idxn, vals)
+    err = MatGetValues(mat, idxm, idxn, vals)
 
     for i=1:length(idxm)
       idxm[i] += 1
@@ -320,29 +320,29 @@ end
 
 
 
-  function PetscMatAssemblyBegin(obj::AbstractArray, flg::Integer=0)
+  function MatAssemblyBegin(obj::AbstractArray, flg::Integer=0)
   end
 
-  function PetscMatAssemblyBegin(obj::PetscMat,flg::Integer)
+  function MatAssemblyBegin(obj::PetscMat,flg::Integer)
     err = ccall( ( :MatAssemblyBegin,  libpetsclocation), PetscErrorCode,(Ptr{Void},Int32), obj.pobj,flg);
   end
 
-  function PetscMatAssemblyBegin(obj::PetscMat)
-    return PetscMatAssemblyBegin(obj,PETSC_MAT_FINAL_ASSEMBLY);
+  function MatAssemblyBegin(obj::PetscMat)
+    return MatAssemblyBegin(obj,PETSC_MAT_FINAL_ASSEMBLY);
   end
 
-  function PetscMatAssemblyEnd(obj::AbstractArray, flag=0)
+  function MatAssemblyEnd(obj::AbstractArray, flag=0)
   end
 
-  function PetscMatAssemblyEnd(obj::PetscMat,flg::Integer)
+  function MatAssemblyEnd(obj::PetscMat,flg::Integer)
     err = ccall( ( :MatAssemblyEnd,  libpetsclocation), PetscErrorCode,(Ptr{Void},Int32), obj.pobj,flg);
   end
 
-  function PetscMatAssemblyEnd(obj::PetscMat)
-    return PetscMatAssemblyEnd(obj,PETSC_MAT_FINAL_ASSEMBLY);
+  function MatAssemblyEnd(obj::PetscMat)
+    return MatAssemblyEnd(obj,PETSC_MAT_FINAL_ASSEMBLY);
   end
 
-  function PetscMatSetSizes(vec::PetscMat,m::PetscInt, n::PetscInt, M::PetscInt, N::PetscInt)
+  function MatSetSizes(vec::PetscMat,m::PetscInt, n::PetscInt, M::PetscInt, N::PetscInt)
     err = ccall( ( :MatSetSizes,  libpetsclocation), PetscErrorCode, (Ptr{Void},PetscInt, PetscInt, PetscInt, PetscInt), vec.pobj,m,n,M,N);
 
 
@@ -353,7 +353,7 @@ end
     err = ccall( (:MatView,  libpetsclocation), PetscErrorCode, (Ptr{Void}, Int64),obj.pobj,0);
   end
 
-  function PetscMatGetSize(obj::PetscMat)
+  function MatGetSize(obj::PetscMat)
     m = Array(PetscInt, 1)
     n = Array(PetscInt, 1)
     err = ccall(Libdl.dlsym(libpetsc, :MatGetSize), PetscErrorCode,(Ptr{Void}, Ptr{PetscInt},Ptr{PetscInt}), obj.pobj,m,n);
@@ -361,8 +361,8 @@ end
   end
 
 
-export PetscMatGetLocalSize
-function PetscMatGetLocalSize(mat::PetscMat)
+export MatGetLocalSize
+function MatGetLocalSize(mat::PetscMat)
     m = Array(PetscInt, 1)
     n = Array(PetscInt, 1)
     ccall((:MatGetLocalSize,petsc),PetscErrorCode,(Ptr{Void},Ptr{PetscInt},Ptr{PetscInt}),mat.pobj, m, n)
@@ -373,14 +373,14 @@ end
 
 
 # Petsc populates v row major, so Julia will see the returned array as being transposed
-function PetscMatGetValues(obj::PetscMat, idxm::Array{PetscInt, 1}, idxn::Array{PetscInt, 1}, v::Array{PetscScalar, 2})
+function MatGetValues(obj::PetscMat, idxm::Array{PetscInt, 1}, idxn::Array{PetscInt, 1}, v::Array{PetscScalar, 2})
     # do check here to ensure v is the right shape
 
     ccall((:MatGetValues,petsc),PetscErrorCode,(Ptr{Void},PetscInt,Ptr{PetscInt},PetscInt,Ptr{PetscInt},Ptr{PetscScalar}), obj.pobj, length(idxm), idxm, length(idxn), idxn, v)
 
 end
 
-function PetscMatGetOwnershipRange(mat::PetscMat)
+function MatGetOwnershipRange(mat::PetscMat)
     low = Array(PetscInt,1)
     high = Array(PetscInt,1)
     ccall((:MatGetOwnershipRange,petsc),PetscErrorCode,(Ptr{Void},Ptr{PetscInt},Ptr{PetscInt}),mat.pobj, low, high)
@@ -389,15 +389,15 @@ function PetscMatGetOwnershipRange(mat::PetscMat)
 end
 
 
-function PetscMatZeroEntries(mat::PetscMat)
+function MatZeroEntries(mat::PetscMat)
     ccall((:MatZeroEntries,petsc),PetscErrorCode,(Ptr{Void},),mat.pobj)
 end
 
-function PetscMatZeroEntries(mat::AbstractMatrix)
+function MatZeroEntries(mat::AbstractMatrix)
   fill!(mat, 0.0)
 end
 
-function PetscMatZeroEntries(mat::SparseMatrixCSC)
+function MatZeroEntries(mat::SparseMatrixCSC)
   fill!(mat.nzval, 0.0)
 end
 
@@ -405,7 +405,7 @@ end
 
 ### new function ###
 
-function PetscMatNorm(mat::PetscMat, ntype::NormType)
+function MatNorm(mat::PetscMat, ntype::NormType)
     nrm = Array(PetscReal, 1)
     ccall((:MatNorm,petsc),PetscErrorCode,(Ptr{Void}, NormType,Ptr{PetscReal}), mat.pobj, ntype, nrm)
     return nrm[1]
@@ -413,51 +413,51 @@ end
 
 
 
-export PetscMatAXPY, PetscMatAYPX, PetscMatScale, PetscMatShift
-function PetscMatAXPY(Y::PetscMat, a::PetscScalar, X::PetscMat, str::PetscMatStructure)
+export MatAXPY, MatAYPX, MatScale, MatShift
+function MatAXPY(Y::PetscMat, a::PetscScalar, X::PetscMat, str::PetscMatStructure)
     ccall((:MatAXPY,petsc),PetscErrorCode,(Ptr{Void},PetscScalar,Ptr{Void},PetscMatStructure), Y.pobj, a, X.pobj, str)
 end
 
-function PetscMatAYPX( Y::PetscMat, a::PetscScalar, X::PetscMat, str::PetscMatStructure)
+function MatAYPX( Y::PetscMat, a::PetscScalar, X::PetscMat, str::PetscMatStructure)
     ccall((:MatAYPX,petsc),PetscErrorCode,(Ptr{Void},PetscScalar,Ptr{Void}, PetscMatStructure), Y.pobj, a, X.pobj, str)
 end
 
-function PetscMatScale(mat::PetscMat, a::Number)
+function MatScale(mat::PetscMat, a::Number)
     ccall((:MatScale,petsc),PetscErrorCode,(Ptr{Void},PetscScalar), mat.pobj, PetscScalar(a))
 end
 
-function PetscMatScale(mat::AbstractArray, a::Number)
+function MatScale(mat::AbstractArray, a::Number)
   scale!(mat, PetscScalar(a))
 end
 
-function PetscMatScale(mat::SparseMatrixCSC, a::Number)
+function MatScale(mat::SparseMatrixCSC, a::Number)
   scale!(mat.nzval, PetscScalar(a))
 end
 
-function PetscMatShift(mat::PetscMat, a::PetscScalar)
+function MatShift(mat::PetscMat, a::PetscScalar)
     ccall((:MatShift,petsc),PetscErrorCode,(Ptr{Void},PetscScalar), mat.pobj, a)
 end
 
-export PetscMatMult, PetscMatMultAdd, PetscMatMultTranspose, PetscMatMultHermitianTranspose
+export MatMult, MatMultAdd, MatMultTranspose, MatMultHermitianTranspose
 
-function PetscMatMult(mat::PetscMat, x::PetscVec, y::PetscVec)
+function MatMult(mat::PetscMat, x::PetscVec, y::PetscVec)
     ccall((:MatMult,petsc),PetscErrorCode,(Ptr{Void},Ptr{Void},Ptr{Void}), mat.pobj, x.pobj, y.pobj)
 end
 
 
-function PetscMatMultAdd(A::PetscMat, x::PetscVec, y::PetscVec, z::PetscVec)
+function MatMultAdd(A::PetscMat, x::PetscVec, y::PetscVec, z::PetscVec)
     ccall((:MatMultAdd,petsc),PetscErrorCode,(Ptr{Void},Ptr{Void},Ptr{Void},Ptr{Void}), A.pobj, x.pobj, y.pobj, z.pobj)
 end
 
-function PetscMatMultTranspose(A::PetscMat, x::PetscVec, y::PetscVec)
+function MatMultTranspose(A::PetscMat, x::PetscVec, y::PetscVec)
     ccall((:MatMultTranspose,petsc),PetscErrorCode,(Ptr{Void},Ptr{Void},Ptr{Void}), A.pobj, x.pobj, y.pobj)
 end
 
-function PetscMatMultHermitianTranspose(mat::PetscMat, x::PetscVec, y::PetscVec)
+function MatMultHermitianTranspose(mat::PetscMat, x::PetscVec, y::PetscVec)
     ccall((:MatMultHermitianTranspose,petsc),PetscErrorCode,(Ptr{Void},Ptr{Void},Ptr{Void}),mat.pobj, x.pobj, y.pobj)
 end
 
-function PetscMatMatMult(A::PetscMat, B::PetscMat, scall::MatReuse, fill::PetscReal, C::PetscMat)
+function MatMatMult(A::PetscMat, B::PetscMat, scall::MatReuse, fill::PetscReal, C::PetscMat)
     arr = [C.pobj]
     ccall((:MatMatMult,petsc),PetscErrorCode,(Ptr{Void}, Ptr{Void}, MatReuse, PetscReal, Ptr{Ptr{Void}}), A.pobj, B.pobj, scall, fill, arr)
     if C.pobj != arr[1]
@@ -470,7 +470,7 @@ end
 
 
 
-function PetscMatXAIJSetPreallocation(mat::PetscMat, bs::PetscInt, dnnz::AbstractArray{PetscInt, 1}, onnz::AbstractArray{PetscInt,1}, dnnzu::AbstractArray{PetscInt, 1}, onnzu::AbstractArray{PetscInt, 1})
+function MatXAIJSetPreallocation(mat::PetscMat, bs::PetscInt, dnnz::AbstractArray{PetscInt, 1}, onnz::AbstractArray{PetscInt,1}, dnnzu::AbstractArray{PetscInt, 1}, onnzu::AbstractArray{PetscInt, 1})
 # this is a unified interface for matrix preallocation for the Petsc built in
 # matrix types: Aij, Bij, and their respective symmetric forms SAij, SBij
 # for a non symmetric format matrix, dnnzu and onnzu are not required
@@ -481,15 +481,15 @@ end
 
 
 # Matrix preallocation
-function PetscMatMPIAIJSetPreallocation(mat::PetscMat, d_nz::PetscInt, d_nnz::PetscInt_arr_or_null, o_nz::PetscInt, o_nnz::PetscInt_arr_or_null)
+function MatMPIAIJSetPreallocation(mat::PetscMat, d_nz::PetscInt, d_nnz::PetscInt_arr_or_null, o_nz::PetscInt, o_nnz::PetscInt_arr_or_null)
 
     ccall((:MatMPIAIJSetPreallocation,petsc),PetscErrorCode,(Ptr{Void}, PetscInt,Ptr{PetscInt},PetscInt,Ptr{PetscInt}), mat.pobj, d_nz, d_nnz, o_nz, o_nnz)
 end
 
-function PetscMatGetInfo(mat::PetscMat, info_type::Int32)
-    matinfo = PetscMatInfo()  # create uninitialized struct
-    ref_matinfo = Ref{PetscMatInfo}(matinfo)
-    ccall((:MatGetInfo,petsc),PetscErrorCode,(Ptr{Void}, Int32,Ref{PetscMatInfo}), mat.pobj ,info_type, ref_matinfo)
+function MatGetInfo(mat::PetscMat, info_type::Int32)
+    matinfo = MatInfo()  # create uninitialized struct
+    ref_matinfo = Ref{MatInfo}(matinfo)
+    ccall((:MatGetInfo,petsc),PetscErrorCode,(Ptr{Void}, Int32,Ref{MatInfo}), mat.pobj ,info_type, ref_matinfo)
     return ref_matinfo[]
 end
 
@@ -503,11 +503,11 @@ import Base.getindex
 
 function size(A::PetscMat)
 
-  return PetscMatGetLocalSize(A)
+  return MatGetLocalSize(A)
 end
 
 function size(A::PetscMat, dim::Integer)
-  dims = PetscMatGetLocalSize(A)
+  dims = MatGetLocalSize(A)
   return dims[dim]
 end
 
@@ -518,14 +518,14 @@ function getindex(A::PetscMat, i::Integer, j::Integer)
   j_ = [PetscInt(j - 1)]
   val = Array(PetscScalar, 1, 1)
 
-  PetscMatGetValues(A, i_, j_, val)
+  MatGetValues(A, i_, j_, val)
 
   return val[1]
 end
 
 function getindex(A::PetscMat, idx::Integer)
   # linear indexing
-  m,n = PetscMatGetLocalSize(A)
+  m,n = MatGetLocalSize(A)
   i = idx % m
   j = div(idx, m)
 
@@ -537,6 +537,6 @@ function getindex(A::PetscMat, idx::Integer)
   j_ = [PetscInt(j)]
   val = Array(PetscScalar, 1, 1)
 
-  PetscMatGetValues(A, i_, j_, val)
+  MatGetValues(A, i_, j_, val)
   return val[1]
 end
