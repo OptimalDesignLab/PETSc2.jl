@@ -342,7 +342,7 @@ end
     return MatAssemblyEnd(obj,PETSC_MAT_FINAL_ASSEMBLY);
   end
 
-  function MatSetSizes(vec::PetscMat,m::PetscInt, n::PetscInt, M::PetscInt, N::PetscInt)
+  function MatSetSizes(vec::PetscMat,m::Integer, n::Integer, M::Integer, N::Integer)
     err = ccall( ( :MatSetSizes,  libpetsclocation), PetscErrorCode, (Ptr{Void},PetscInt, PetscInt, PetscInt, PetscInt), vec.pobj,m,n,M,N);
 
 
@@ -470,7 +470,7 @@ end
 
 
 
-function MatXAIJSetPreallocation(mat::PetscMat, bs::PetscInt, dnnz::AbstractArray{PetscInt, 1}, onnz::AbstractArray{PetscInt,1}, dnnzu::AbstractArray{PetscInt, 1}, onnzu::AbstractArray{PetscInt, 1})
+function MatXAIJSetPreallocation(mat::PetscMat, bs::Integer, dnnz::AbstractArray{PetscInt, 1}, onnz::AbstractArray{PetscInt,1}, dnnzu::AbstractArray{PetscInt, 1}, onnzu::AbstractArray{PetscInt, 1})
 # this is a unified interface for matrix preallocation for the Petsc built in
 # matrix types: Aij, Bij, and their respective symmetric forms SAij, SBij
 # for a non symmetric format matrix, dnnzu and onnzu are not required
@@ -481,7 +481,7 @@ end
 
 
 # Matrix preallocation
-function MatMPIAIJSetPreallocation(mat::PetscMat, d_nz::PetscInt, d_nnz::PetscInt_arr_or_null, o_nz::PetscInt, o_nnz::PetscInt_arr_or_null)
+function MatMPIAIJSetPreallocation(mat::PetscMat, d_nz::Integer, d_nnz::PetscInt_arr_or_null, o_nz::Integer, o_nnz::PetscInt_arr_or_null)
 
     ccall((:MatMPIAIJSetPreallocation,petsc),PetscErrorCode,(Ptr{Void}, PetscInt,Ptr{PetscInt},PetscInt,Ptr{PetscInt}), mat.pobj, d_nz, d_nnz, o_nz, o_nnz)
 end

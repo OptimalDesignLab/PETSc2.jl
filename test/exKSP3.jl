@@ -11,22 +11,22 @@ comm = MPI.COMM_WORLD
 comm_size = MPI.Comm_size(MPI.COMM_WORLD)
 comm_rank = MPI.Comm_rank(MPI.COMM_WORLD)
 
-sys_size = 3
+sys_size_local = 3
 println("my comm rank = ", comm_rank)
 
 b = PetscVec(comm);
 PetscVecSetType(b,"mpi");
-PetscVecSetSizes(b,sys_size, comm_size*sys_size);
+PetscVecSetSizes(b,sys_size_local, comm_size*sys_size_local);
 
 x = PetscVec(comm);
 PetscVecSetType(x,"mpi");
-PetscVecSetSizes(x,sys_size, comm_size*sys_size);
+PetscVecSetSizes(x,sys_size_local, comm_size*sys_size_local);
 
 
 
 
-rhs = zeros(sys_size)
-for i=1:sys_size
+rhs = zeros(sys_size_local)
+for i=1:sys_size_local
   idxm = [(comm_rank)*10 + i]  # index
   PetscVecSetValues(b,idxm,[ convert(Float64,i)],PETSC_INSERT_VALUES);
   rhs[i] = i
@@ -54,12 +54,12 @@ println("x_julia = ", x_julia)
 
 A = PetscMat(comm);
 PetscMatSetType(A,"mpiaij");
-PetscMatSetSizes(A,sys_size,sys_size,comm_size*sys_size,comm_size*sys_size);
+PetscMatSetSizes(A,sys_size_local,sys_size_local,comm_size*sys_size_local,comm_size*sys_size_local);
 PetscSetUp(A);
-for i=1:sys_size
-  for j = 1:sys_size
-    idxm = [(comm_rank)*sys_size + i]  # row index
-    idxn = [(comm_rank)*sys_size + j]  # column index
+for i=1:sys_size_local
+  for j = 1:sys_size_local
+    idxm = [(comm_rank)*sys_size_local + i]  # row index
+    idxn = [(comm_rank)*sys_size_local + j]  # column index
     PetscMatSetValues(A,idxm, idxn, [A_julia[i,j]],PETSC_INSERT_VALUES);
   end
 end
@@ -84,10 +84,10 @@ println("finished performing linear solve")
 PetscView(x)
 
 # copy solution back to Julia
-x_copy = zeros(sys_size)
+x_copy = zeros(sys_size_local)
 idx = Array(0:2)
 
-PetscVecGetValues(x, sys_size, idx, x_copy)
+PetscVecGetValues(x, sys_size_local, idx, x_copy)
 
 println("x_copy = ", x_copy)
 

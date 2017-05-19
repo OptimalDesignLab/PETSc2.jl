@@ -1,83 +1,102 @@
+function make_vec(format_j)
 
-facts("\n   ---Testing vector functions---") do
-
-for j=1:length(vec_formats)
-#  format_j = "standard"
-  format_j = vec_formats[j]
-  println("testing vector format ", format_j)
-  b = PetscVec(comm);
-  VecSetType(b, format_j);
-  VecSetSizes(b,sys_size, PetscInt(comm_size*sys_size));
-
-
-  # create 3rd vector to store results in
-  b3 = PetscVec(comm);
-  VecSetType(b3, format_j);
-  VecSetSizes(b3,sys_size, PetscInt(comm_size*sys_size));
-
-  rhs_tmp2 = zeros(PetscScalar, sys_size)
-
+  b = PetscVec(sys_size_global, format_j, comm)
   low, high = VecGetOwnershipRange(b)
   global_indices = Array(low:PetscInt(high - 1))
-  println("comm_rank = ", comm_rank, " , global_indices = ", global_indices)
 
-
-  #=
-  x = PetscVec(comm);
-  VecSetType(x,"mpi");
-  VecSetSizes(x,sys_size, comm_size*sys_size);
-  =#
-
-  # test set_values1
   idxm = global_indices + PetscInt(1)  # 1 based indexing
-  vals = Array(PetscScalar, sys_size)
-  for i=1:sys_size
+  vals = Array(PetscScalar, sys_size_local)
+  for i=1:sys_size_local
+    vals[i] = rhs[i]
+  end
+  set_values1!(b, idxm, vals)
+  PETSc.VecAssemble(b)
+
+  return b
+end
+
+#------------------------------------------------------------------------------
+# functions that run tests
+
+# test indexing
+function test_indexing(format_j)
+  println("testing indexing")
+
+  b = make_vec(format_j)
+  #=
+  b = PetscVec(sys_size_global, format_j, comm)
+  idxm = global_indices + PetscInt(1)  # 1 based indexing
+  vals = Array(PetscScalar, sys_size_local)
+  for i=1:sys_size_local
     vals[i] = i
   end
   set_values1!(b, idxm, vals)
-  VecAssemblyBegin(b)
-  VecAssemblyEnd(b)
-  vals2 = zeros(vals)
+  PETSc.VecAssemble(b)
+  =#
+  vals2 = zeros(rhs)
+
+  low, high = VecGetOwnershipRange(b)
+  global_indices = Array(low:PetscInt(high - 1)) 
+  idxm = global_indices + PetscInt(1)  # 1 based indexing
+
   VecGetValues(b, global_indices, vals2)
 
-  @fact vals --> roughly(vals2, atol=1e-13)
+  println("test 1")
+  @fact rhs --> roughly(vals2, atol=1e-13)
   fill!(vals2, 0.0)
   get_values1!(b,  idxm, vals2)
-  @fact vals --> roughly(vals2, atol=1e-13)
+  println("test 2")
+  @fact rhs --> roughly(vals2, atol=1e-13)
 
   b2s = zeros(3)
   idxm = collect(PetscInt, 1:3)
   vals = rand(3)
   set_values1!(b2s, idxm, vals)
 
+  println("test 3")
   @fact b2s --> roughly(vals, atol=1e-13)
 
   set_values1!(b2s, idxm, vals, PETSC_ADD_VALUES)
 
+  println("test 4")
   @fact b2s --> roughly(2*vals, atol=1e-13)
   vals2 = zeros(vals)
   get_values1!(b2s, idxm, vals2)
+
+  println("test 5")
   @fact vals2 --> roughly(2*vals, atol=1e-13)
 
 
 
 
-  for i=1:sys_size
+  for i=1:sys_size_local
     idxm = [global_indices[i]]   # index
     val = [ rhs[i] ]  # value
     VecSetValues(b, idxm, val, PETSC_INSERT_VALUES)
   end
 
-  VecAssemblyBegin(b)
-  VecAssemblyEnd(b)
+  PETSc.VecAssemble(b)
+
+  PetscDestroy(b)
+  return nothing
+end
+
+
+# test copy, getArray
+function test_copy(format_j)
+  println("testing copy")
+  b = make_vec(format_j)
+
+  low, high = VecGetOwnershipRange(b)
+  global_indices = Array(low:PetscInt(high - 1)) 
 
   # check that the vector was set/assembled correctly
   # check all the methods of copying/accesing a vector work
-  b_copy = zeros(PetscScalar, sys_size)
-  b2_copy = zeros(PetscScalar, sys_size)
+  b_copy = zeros(PetscScalar, sys_size_local)
+  b2_copy = zeros(PetscScalar, sys_size_local)
 #  idx = Array(0:2)  
 #  idx = Array(PetscInt, 3)
-#  for i=1:sys_size
+#  for i=1:sys_size_local
 #    idx[i] = global_indices[i]
 #  end
 
@@ -86,9 +105,9 @@ for j=1:length(vec_formats)
   b2 = VecDuplicate(b)
   VecCopy(b, b2)
   
-  VecGetValues(b, sys_size, global_indices, b_copy)
-  VecGetValues(b2, sys_size, global_indices, b2_copy)
-  for i=1:sys_size
+  VecGetValues(b, sys_size_local, global_indices, b_copy)
+  VecGetValues(b2, sys_size_local, global_indices, b2_copy)
+  for i=1:sys_size_local
      @fact b_copy[i] => roughly(rhs[i])
      @fact b_arr[i] => roughly(rhs[i])
      @fact b_arr_ro[i] => roughly(rhs[i])
@@ -99,8 +118,29 @@ for j=1:length(vec_formats)
   VecRestoreArrayRead(b, ptr_arr2)
 
  
-  @fact VecGetSize(b) => comm_size*sys_size
+  @fact VecGetSize(b) => comm_size*sys_size_local
 
+  PetscDestroy(b)
+  PetscDestroy(b2)
+  return nothing
+end
+
+# test norms/BLAS stuff
+function test_linalg(format_j)
+
+  b = make_vec(format_j)
+  b2 = copy(b)
+#    b2 = VecDuplicate(b)
+#    VecCopy(b, b2)
+  # create 3rd vector to store results in
+  b3 = PetscVec(sys_size_global, format_j, comm)
+
+  low, high = VecGetOwnershipRange(b)
+  global_indices = Array(low:PetscInt(high - 1)) 
+
+  b_copy = zeros(PetscScalar, sys_size_local)
+  b2_copy = zeros(PetscScalar, sys_size_local)
+  rhs_tmp2 = zeros(PetscScalar, sys_size_local)
   for i=1:length(vec_norms)
     norm_petsc = VecNorm(b, vec_norms[i])
     norm_julia = norm(rhs, julia_vec_norms[i])
@@ -117,29 +157,29 @@ for j=1:length(vec_formats)
   # test math functions
   VecSqrtAbs(b)
   rhs_tmp = deepcopy(rhs)  # don't modifiy original rhs
-  VecGetValues(b, sys_size, global_indices, b_copy)
-  for i=1:sys_size
+  VecGetValues(b, sys_size_local, global_indices, b_copy)
+  for i=1:sys_size_local
     rhs_tmp[i] = sqrt(abs(rhs_tmp[i]))
     @fact b_copy[i] => roughly(rhs_tmp[i])
   end
 
   VecLog(b)
-  VecGetValues(b, sys_size, global_indices, b_copy)
-  for i=1:sys_size
+  VecGetValues(b, sys_size_local, global_indices, b_copy)
+  for i=1:sys_size_local
     rhs_tmp[i] = log(rhs_tmp[i])
     @fact b_copy[i] => roughly(rhs_tmp[i])
   end
 
   VecExp(b)
-  VecGetValues(b, sys_size, global_indices, b_copy)
-  for i=1:sys_size
+  VecGetValues(b, sys_size_local, global_indices, b_copy)
+  for i=1:sys_size_local
     rhs_tmp[i] = exp(rhs_tmp[i])
     @fact b_copy[i] => roughly(rhs_tmp[i])
   end
 
   VecAbs(b)
-  VecGetValues(b, sys_size, global_indices, b_copy)
-  for i=1:sys_size
+  VecGetValues(b, sys_size_local, global_indices, b_copy)
+  for i=1:sys_size_local
     rhs_tmp[i] = abs(rhs_tmp[i])
     @fact b_copy[i] => roughly(rhs_tmp[i])
   end
@@ -167,24 +207,24 @@ for j=1:length(vec_formats)
   println("finished testing VecMin")
 
   VecReciprocal(b)
-  VecGetValues(b, sys_size, global_indices, b_copy)
-  for i=1:sys_size
+  VecGetValues(b, sys_size_local, global_indices, b_copy)
+  for i=1:sys_size_local
     rhs_tmp[i] = 1/rhs_tmp[i]
     @fact b_copy[i] => roughly(rhs_tmp[i])
   end
   println("finished testing VecReciprocal")
 
   VecShift(b, PetscScalar(2.0))
-  VecGetValues(b, sys_size, global_indices, b_copy)
-  for i=1:sys_size
+  VecGetValues(b, sys_size_local, global_indices, b_copy)
+  for i=1:sys_size_local
     rhs_tmp[i] = rhs_tmp[i] + 2.0
     @fact b_copy[i] => roughly(rhs_tmp[i])
   end
   println("finished testing VecShift")
 
   VecPointwiseMult(b3, b, b2)
-  VecGetValues(b3, sys_size, global_indices, b_copy)
-  for i=1:sys_size
+  VecGetValues(b3, sys_size_local, global_indices, b_copy)
+  for i=1:sys_size_local
     rhs_tmp2[i] = rhs_tmp[i]*rhs[i]
     @fact b_copy[i] => roughly(rhs_tmp2[i])
   end
@@ -192,17 +232,13 @@ for j=1:length(vec_formats)
   println("finished testing VecPointwiseMult")
 
   VecPointwiseDivide(b3, b, b2)
-  VecGetValues(b3, sys_size, global_indices, b_copy)
-  for i=1:sys_size
+  VecGetValues(b3, sys_size_local, global_indices, b_copy)
+  for i=1:sys_size_local
     rhs_tmp2[i] = rhs_tmp[i]/rhs[i]
     @fact b_copy[i] => roughly(rhs_tmp2[i])
   end
 
   println("finished testing VecPointwiseDivide")
-
-
-
-
 
 
   # test vector multiplication, addition functions
@@ -220,10 +256,10 @@ for j=1:length(vec_formats)
 
   VecAXPY(b, alpha, b2)
   rhs_tmp += alpha*rhs
-  VecGetValues(b, sys_size, global_indices, b_copy)
+  VecGetValues(b, sys_size_local, global_indices, b_copy)
   println("b_copy = ", b_copy)
   println("rhs_tmp = ", rhs_tmp)
-  for i=1:sys_size
+  for i=1:sys_size_local
     @fact b_copy[i] => roughly(rhs_tmp[i])
   end
 
@@ -232,16 +268,16 @@ for j=1:length(vec_formats)
   #=
   VecAXPBY(b, alpha, beta, b2)
   rhs_tmp = alpha*rhs + beta*rhs_tmp
-  VecGetValues(b, sys_size, global_indices, b_copy)
-  for i=1:sys_size
+  VecGetValues(b, sys_size_local, global_indices, b_copy)
+  for i=1:sys_size_local
     @fact b_copy[i] => roughly(rhs_tmp[i])
   end
 =#
 
   VecAYPX(b, alpha, b2)
   rhs_tmp = alpha*rhs_tmp + rhs
-  VecGetValues(b, sys_size, global_indices, b_copy)
-  for i=1:sys_size
+  VecGetValues(b, sys_size_local, global_indices, b_copy)
+  for i=1:sys_size_local
     @fact b_copy[i] => roughly(rhs_tmp[i])
   end
 
@@ -249,8 +285,8 @@ for j=1:length(vec_formats)
 
   VecWAXPY(b3, alpha, b, b2)
   rhs_tmp2 = alpha*rhs_tmp + rhs
-  VecGetValues(b3, sys_size, global_indices, b_copy)
-  for i=1:sys_size
+  VecGetValues(b3, sys_size_local, global_indices, b_copy)
+  for i=1:sys_size_local
     @fact b_copy[i] => roughly(rhs_tmp2[i])
   end
 
@@ -261,8 +297,8 @@ for j=1:length(vec_formats)
   vec_arr = [b2.pobj, b3.pobj]
   VecMAXPY(b, PetscInt(2), scalar_arr, vec_arr)
   rhs_tmp += alpha*rhs + beta*rhs_tmp2
-  VecGetValues(b, sys_size, global_indices, b_copy)
-  for i=1:sys_size
+  VecGetValues(b, sys_size_local, global_indices, b_copy)
+  for i=1:sys_size_local
     @fact b_copy[i] => roughly(rhs_tmp[i])
   end
 
@@ -270,8 +306,8 @@ for j=1:length(vec_formats)
 
   VecAXPBYPCZ(b, alpha, beta, gamma, b2, b3)
   rhs_tmp = alpha*rhs + beta*rhs_tmp2 + gamma*rhs_tmp
-  VecGetValues(b, sys_size, global_indices, b_copy)
-  for i=1:sys_size
+  VecGetValues(b, sys_size_local, global_indices, b_copy)
+  for i=1:sys_size_local
     @fact b_copy[i] => roughly(rhs_tmp[i])
   end
 
@@ -281,8 +317,8 @@ for j=1:length(vec_formats)
 
   VecScale(b, alpha)
   rhs_tmp *= alpha
-   VecGetValues(b, sys_size, global_indices, b_copy)
-  for i=1:sys_size
+   VecGetValues(b, sys_size_local, global_indices, b_copy)
+  for i=1:sys_size_local
     @fact b_copy[i] => roughly(rhs_tmp[i])
   end
 
@@ -316,10 +352,10 @@ for j=1:length(vec_formats)
   println("finished testing VecSum")
 
   VecSwap(b, b2)
-  b2_copy = zeros(PetscScalar, sys_size)
-  VecGetValues(b, sys_size, global_indices, b_copy)
-  VecGetValues(b2, sys_size, global_indices, b2_copy)
-  for i=1:sys_size
+  b2_copy = zeros(PetscScalar, sys_size_local)
+  VecGetValues(b, sys_size_local, global_indices, b_copy)
+  VecGetValues(b2, sys_size_local, global_indices, b2_copy)
+  for i=1:sys_size_local
     @fact b_copy[i] => roughly(rhs[i])
     @fact b2_copy[i] => roughly(rhs_tmp[i])
   end
@@ -335,9 +371,23 @@ for j=1:length(vec_formats)
   PetscDestroy(b)
   PetscDestroy(b2)
   PetscDestroy(b3)
-  end
+end
 
 
+
+
+facts("\n   ---Testing vector functions---") do
+
+for j=1:length(vec_formats)
+#  format_j = "standard"
+  format_j = vec_formats[j]
+  println("testing vector format ", format_j)
+
+  test_indexing(format_j)
+  test_copy(format_j)
+  test_linalg(format_j)
+
+  end  # end loop over formats
 end # end fact check block
 
 

@@ -4,7 +4,7 @@ facts("\n   ---testing KSP solvers---") do
 
   b = PetscVec(comm);
   VecSetType(b, "mpi");
-  VecSetSizes(b,sys_size, PetscInt(comm_size*sys_size));
+  VecSetSizes(b,sys_size_local, PetscInt(comm_size*sys_size_local));
 
   low, high = VecGetOwnershipRange(b)
   b_global_indices = Array(low:PetscInt(high - 1))
@@ -12,13 +12,13 @@ facts("\n   ---testing KSP solvers---") do
 
   x = PetscVec(comm);
   VecSetType(x,"mpi");
-  VecSetSizes(x,sys_size, PetscInt(comm_size*sys_size));
+  VecSetSizes(x,sys_size_local, PetscInt(comm_size*sys_size_local));
 
   low, high = VecGetOwnershipRange(x)
   x_global_indices = Array(low:PetscInt(high - 1))
  
 
-  for i=1:sys_size
+  for i=1:sys_size_local
     idxm = [ b_global_indices[i] ]   # index
     val = [ rhs[i] ]  # value
     VecSetValues(b, idxm, val, PETSC_INSERT_VALUES)
@@ -32,15 +32,15 @@ facts("\n   ---testing KSP solvers---") do
   A = PetscMat(comm)
   MatSetType(A, "mpiaij")
 
-  MatSetSizes(A,sys_size,sys_size,PetscInt(comm_size*sys_size),PetscInt(comm_size*sys_size));
+  MatSetSizes(A,sys_size_local,sys_size_local,PetscInt(comm_size*sys_size_local),PetscInt(comm_size*sys_size_local));
   SetUp(A);
 
   low, high = MatGetOwnershipRange(A)
   mat_global_indices = Array(low:PetscInt(high - 1))
  
 
-  for i=1:sys_size
-    for j = 1:sys_size
+  for i=1:sys_size_local
+    for j = 1:sys_size_local
       idxm = [ mat_global_indices[i] ]  # row index
       idxn = [ mat_global_indices[j] ]  # column index
       MatSetValues(A,idxm, idxn, [A_julia[i,j]],PETSC_INSERT_VALUES);
@@ -66,17 +66,17 @@ println("KSP convergence reason = ", reason)
 PetscView(ksp)
 
 # copy solution back to Julia
-x_copy = zeros(PetscScalar, sys_size)
+x_copy = zeros(PetscScalar, sys_size_local)
 #idx = Array(0:2)
-#idx = zeros(PetscInt, sys_size)
-#for i=1:sys_size
+#idx = zeros(PetscInt, sys_size_local)
+#for i=1:sys_size_local
 #  idx[i] = i-1
 #end
 
-VecGetValues(x, sys_size, x_global_indices, x_copy)
+VecGetValues(x, sys_size_local, x_global_indices, x_copy)
 println("x_copy = ", x_copy)
 println("x_julia = ", x_julia)
-for i=1:sys_size
+for i=1:sys_size_local
     @fact x_copy[i] => roughly(x_julia[i], atol=1e-14)
 end
 
@@ -181,17 +181,17 @@ rnorm = GetResidualNorm(ksp)
 PetscView(ksp)
 
 # copy solution back to Julia
-x_copy = zeros(PetscScalar, sys_size)
+x_copy = zeros(PetscScalar, sys_size_local)
 #idx = Array(0:2)
-#idx = zeros(PetscInt, sys_size)
-#for i=1:sys_size
+#idx = zeros(PetscInt, sys_size_local)
+#for i=1:sys_size_local
 #  idx[i] = i-1
 #end
 
-VecGetValues(x, sys_size, x_global_indices, x_copy)
+VecGetValues(x, sys_size_local, x_global_indices, x_copy)
 println("x_copy = ", x_copy)
 println("x_julia = ", x_julia)
-for i=1:sys_size
+for i=1:sys_size_local
     @fact x_copy[i] => roughly(x_julia[i], atol=1e-14)
 end
 

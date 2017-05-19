@@ -3,7 +3,7 @@ facts("\n   ---testing matrix functions---") do
   A = PetscMat(comm)
   MatSetType(A, "mpiaij")
 
-  MatSetSizes(A,sys_size,sys_size, PetscInt(comm_size*sys_size),PetscInt(comm_size*sys_size));
+  MatSetSizes(A,sys_size_local,sys_size_local, PetscInt(comm_size*sys_size_local),PetscInt(comm_size*sys_size_local));
   SetUp(A);
 
   println("mat_type = ", MatGetType(A))
@@ -11,18 +11,18 @@ facts("\n   ---testing matrix functions---") do
   B = PetscMat(comm)
   MatSetType(B, "mpiaij")
 
-  MatSetSizes(B,sys_size,sys_size, PetscInt(comm_size*sys_size),PetscInt(comm_size*sys_size));
+  MatSetSizes(B,sys_size_local,sys_size_local, PetscInt(comm_size*sys_size_local),PetscInt(comm_size*sys_size_local));
   SetUp(B);
 
   x = PetscVec(comm);
   VecSetType(x, VECMPI);
-  VecSetSizes(x,sys_size, PetscInt(comm_size*sys_size));
+  VecSetSizes(x,sys_size_local, PetscInt(comm_size*sys_size_local));
 
   low, high = VecGetOwnershipRange(x)
   global_indices = Array(low:PetscInt(high - 1))
  
 
-  for i=1:sys_size
+  for i=1:sys_size_local
     idxm = [global_indices[i]]   # index
     val = [ rhs[i] ]  # value
     VecSetValues(x, idxm, val, PETSC_INSERT_VALUES)
@@ -36,9 +36,9 @@ facts("\n   ---testing matrix functions---") do
 
   y = PetscVec(comm);
   VecSetType(y, VECMPI);
-  VecSetSizes(y,sys_size, PetscInt(comm_size*sys_size));
+  VecSetSizes(y,sys_size_local, PetscInt(comm_size*sys_size_local));
 
-  for i=1:sys_size
+  for i=1:sys_size_local
     idxm = [global_indices[i]]   # index
     val = [ rhs[i] ]  # value
     VecSetValues(y, idxm, val, PETSC_INSERT_VALUES)
@@ -54,14 +54,14 @@ facts("\n   ---testing matrix functions---") do
   global_indices = Array(low:PetscInt(high - 1))
   println("comm_rank = ", comm_rank, " , global_indices = ", global_indices)
 
-  global_row_ind = zeros(PetscInt, sys_size*sys_size)
-  global_col_ind = zeros(PetscInt, sys_size*sys_size)
+  global_row_ind = zeros(PetscInt, sys_size_local*sys_size_local)
+  global_col_ind = zeros(PetscInt, sys_size_local*sys_size_local)
 
 
   # get global row and column indicies, in column major order
   pos = 1
-  for i=1:sys_size  # loop over columns
-    for j=1:sys_size  # loop over rows
+  for i=1:sys_size_local  # loop over columns
+    for j=1:sys_size_local  # loop over rows
       global_row_ind[pos] = j - 1 + low
       global_col_ind[pos] = i - 1 + low
       pos += 1
@@ -75,7 +75,7 @@ facts("\n   ---testing matrix functions---") do
   # test set_values1!
   global_indices1 = global_indices + PetscInt(1)
   global_indices2 = global_indices + PetscInt(1)
-  vals = rand(PetscScalar, sys_size, sys_size)
+  vals = rand(PetscScalar, sys_size_local, sys_size_local)
 
   set_values1!(A, global_indices1, global_indices2, vals)
   MatAssemblyBegin(A)
@@ -117,8 +117,8 @@ facts("\n   ---testing matrix functions---") do
 
 
 
-  for i=1:sys_size
-    for j = 1:sys_size
+  for i=1:sys_size_local
+    for j = 1:sys_size_local
       idxm = [ global_indices[i] ] # row index
       idxn = [ global_indices[j] ] # column index
       MatSetValues(A,idxm, idxn, [A_julia[i,j]],PETSC_INSERT_VALUES);
@@ -126,7 +126,7 @@ facts("\n   ---testing matrix functions---") do
     end
   end
 
-  B_copy = zeros(PetscScalar, sys_size, sys_size)
+  B_copy = zeros(PetscScalar, sys_size_local, sys_size_local)
 
   MatAssemblyBegin(A,PETSC_MAT_FINAL_ASSEMBLY);
   MatAssemblyEnd(A,PETSC_MAT_FINAL_ASSEMBLY);
@@ -140,11 +140,11 @@ facts("\n   ---testing matrix functions---") do
 
   b2t = PetscVec(comm);
   VecSetType(b2t, VECMPI);
-  VecSetSizes(b2t, sys_size, PetscInt(comm_size*sys_size));
+  VecSetSizes(b2t, sys_size_local, PetscInt(comm_size*sys_size_local));
 
   x2 = PetscVec(comm);
   VecSetType(x2, VECMPI);
-  VecSetSizes(x2, sys_size, PetscInt(comm_size*sys_size));
+  VecSetSizes(x2, sys_size_local, PetscInt(comm_size*sys_size_local));
 
   VecSetValues(x2, global_indices, rhs)
 
@@ -155,10 +155,10 @@ facts("\n   ---testing matrix functions---") do
 
   b2t_julia = A_julia.'*rhs
 
-  vals = zeros(PetscScalar, sys_size)
+  vals = zeros(PetscScalar, sys_size_local)
   VecGetValues(b2t, global_indices, vals)
 
-  for i=1:sys_size
+  for i=1:sys_size_local
     @fact b2t_julia[i] --> roughly(vals[i], atol=1e-12)
   end
 
@@ -169,13 +169,13 @@ facts("\n   ---testing matrix functions---") do
   # test MatTranpose
   println("testing out of place transpose")
   At = MatTranspose(A, inplace=false)
-  vals = zeros(PetscScalar, sys_size, sys_size)
+  vals = zeros(PetscScalar, sys_size_local, sys_size_local)
   valst = zeros(vals)
   PetscMatGetValues(A, global_indices, global_indices, vals)
   PetscMatGetValues(At, global_indices, global_indices, valst)
 
-  for i=1:sys_size
-    for j=1:sys_size
+  for i=1:sys_size_local
+    for j=1:sys_size_local
       @fact vals[i, j] --> roughly(valst[j, i], atol=1e-12)
     end
   end
@@ -190,8 +190,8 @@ facts("\n   ---testing matrix functions---") do
   println("vals = \n", vals)
   println("valst = \n", valst)
 
-  for i=1:sys_size
-    for j=1:sys_size
+  for i=1:sys_size_local
+    for j=1:sys_size_local
       @fact vals[i, j] --> roughly(valst[i, j], atol=1e-12)
     end
   end
@@ -207,8 +207,8 @@ facts("\n   ---testing matrix functions---") do
 
 
 #=
-  for i=1:sys_size
-    for j=1:sys_size
+  for i=1:sys_size_local
+    for j=1:sys_size_local
       idxm = [global_indices[i] ]  # row index
       idxn = [ global_indices[j] ] # column index
       v = zeros(PetscScalar, 1,1)
@@ -219,18 +219,18 @@ facts("\n   ---testing matrix functions---") do
     end
   end
 
-  for i=1:sys_size*sys_size
+  for i=1:sys_size_local*sys_size_local
     A[i] => roughly(A_julia[i])
   end
 =#
-  @fact size(A) => (sys_size, sys_size)
-  @fact size(A, 1) => sys_size
-  @fact size(A, 2) => sys_size
+  @fact size(A) => (sys_size_local, sys_size_local)
+  @fact size(A, 1) => sys_size_local
+  @fact size(A, 2) => sys_size_local
 
 
-  @fact MatGetSize(A) => (comm_size*sys_size, comm_size*sys_size)
+  @fact MatGetSize(A) => (comm_size*sys_size_local, comm_size*sys_size_local)
   println("Mat local size = ", MatGetLocalSize)
-  @fact MatGetLocalSize(A) => (sys_size, sys_size)
+  @fact MatGetLocalSize(A) => (sys_size_local, sys_size_local)
   # testing non zero exist code is all we can really do here
   println("Printing A")
   @fact PetscView(A, 0) => 0
@@ -244,8 +244,8 @@ facts("\n   ---testing matrix functions---") do
   MatAXPY(B, alpha, A, DIFFERENT_NONZERO_PATTERN)
   B_julia = alpha*A_julia + B_julia
   MatGetValues(B, global_indices, global_indices, B_copy)
-  for i=1:sys_size
-    for j=1:sys_size
+  for i=1:sys_size_local
+    for j=1:sys_size_local
       @fact B_julia[j, i] => roughly(B_copy[i, j])
     end
   end
@@ -255,8 +255,8 @@ facts("\n   ---testing matrix functions---") do
   MatAYPX(B, alpha, A, DIFFERENT_NONZERO_PATTERN)
   B_julia = alpha*B_julia + A_julia
   MatGetValues(B, global_indices, global_indices, B_copy)
-  for i=1:sys_size
-    for j=1:sys_size
+  for i=1:sys_size_local
+    for j=1:sys_size_local
       @fact B_julia[j, i] => roughly(B_copy[i, j])
     end
   end
@@ -266,8 +266,8 @@ facts("\n   ---testing matrix functions---") do
   MatScale(B, alpha)
   B_julia = alpha*B_julia
   MatGetValues(B, global_indices, global_indices, B_copy)
-  for i=1:sys_size
-    for j=1:sys_size
+  for i=1:sys_size_local
+    for j=1:sys_size_local
       @fact B_julia[j, i] => roughly(B_copy[i, j])
     end
   end
@@ -286,44 +286,44 @@ facts("\n   ---testing matrix functions---") do
   println("finished testing MatScale")
 
   MatShift(B, alpha)
-  B_julia += alpha*eye(PetscScalar, sys_size)
+  B_julia += alpha*eye(PetscScalar, sys_size_local)
   MatGetValues(B, global_indices, global_indices, B_copy)
-  for i=1:sys_size
-    for j=1:sys_size
+  for i=1:sys_size_local
+    for j=1:sys_size_local
       @fact B_julia[j, i] => roughly(B_copy[i, j])
     end
   end
 
   println("finished testing PetscMatShift")
 
-  y_copy = zeros(PetscScalar, sys_size)
+  y_copy = zeros(PetscScalar, sys_size_local)
   MatMult(B, x, y)
   y_julia = B_julia*xvec_julia
 
-  VecGetValues(y, sys_size, global_indices, y_copy)
-  for i=1:sys_size
+  VecGetValues(y, sys_size_local, global_indices, y_copy)
+  for i=1:sys_size_local
       @fact y_julia[i] => roughly(y_copy[i])
   end
 
 
   MatMultAdd(B, x, y, y)
   y_julia = y_julia + B_julia*xvec_julia
-  VecGetValues(y, sys_size, global_indices, y_copy)
-  for i=1:sys_size
+  VecGetValues(y, sys_size_local, global_indices, y_copy)
+  for i=1:sys_size_local
       @fact y_julia[i] => roughly(y_copy[i])
   end
 
   MatMultTranspose(A, x, y)
   y_julia = A_julia.'*xvec_julia
-  VecGetValues(y, sys_size, global_indices, y_copy)
-  for i=1:sys_size
+  VecGetValues(y, sys_size_local, global_indices, y_copy)
+  for i=1:sys_size_local
       @fact y_julia[i] => roughly(y_copy[i])
   end
 
   MatMultHermitianTranspose(A, x, y)
   y_julia = A_julia'*xvec_julia
-  VecGetValues(y, sys_size, global_indices, y_copy)
-  for i=1:sys_size
+  VecGetValues(y, sys_size_local, global_indices, y_copy)
+  for i=1:sys_size_local
       @fact y_julia[i] => roughly(y_copy[i])
   end
 
@@ -332,11 +332,11 @@ facts("\n   ---testing matrix functions---") do
   MatMatMult(A, B, MAT_INITIAL_MATRIX, PetscReal(1.0), D)
   D_julia = A_julia*B_julia
   println("D_julia = ", D_julia)
-  D_copy = zeros(PetscScalar, sys_size, sys_size)
+  D_copy = zeros(PetscScalar, sys_size_local, sys_size_local)
   MatGetValues(D, global_indices, global_indices, D_copy)
 
-  for i=1:sys_size
-    for j=1:sys_size
+  for i=1:sys_size_local
+    for j=1:sys_size_local
       @fact D_copy[j,i] => roughly(D_julia[i,j])
     end
   end
@@ -356,14 +356,14 @@ facts("\n   ---testing matrix functions---") do
 #  MatSetFromOptions(C)
   println("nb = ", nb)
   println("comm_size = ", comm_size)
-  println("sys_size = ", sys_size)
+  println("sys_size_local = ", sys_size_local)
 
-  MatSetSizes(C, nb*sys_size, nb*sys_size, PetscInt(nb*comm_size*sys_size),PetscInt(nb*comm_size*sys_size));
+  MatSetSizes(C, nb*sys_size_local, nb*sys_size_local, PetscInt(nb*comm_size*sys_size_local),PetscInt(nb*comm_size*sys_size_local));
 
   # preallocation parameters
   bs = PetscInt(1)
-  dnnz = 3*ones(PetscInt, nb*sys_size)  # on diagonal (row + column owned by this process)
-  onnz = zeros(PetscInt, nb*sys_size)  # no off diagonal (column not owned by this process)
+  dnnz = 3*ones(PetscInt, nb*sys_size_local)  # on diagonal (row + column owned by this process)
+  onnz = zeros(PetscInt, nb*sys_size_local)  # no off diagonal (column not owned by this process)
   dnnzu = Array(PetscInt, 0)  # this is not a symmetric matrix, so unused
   onnzu = Array(PetscInt, 0)  # this is not a symmetric matrix, so unused
 
@@ -379,22 +379,22 @@ facts("\n   ---testing matrix functions---") do
   A_julia_t = A_julia.'  # transpose because C is row major
 
   low, high = MatGetOwnershipRange(C)
-  idi = zeros(PetscInt, sys_size)  # row indices
-  idj = zeros(PetscInt, sys_size)  # column indices
+  idi = zeros(PetscInt, sys_size_local)  # row indices
+  idj = zeros(PetscInt, sys_size_local)  # column indices
 
   for i=1:nb
 
     # get indices
     pos = 1
-    for j=1:sys_size # insert block on diagonal
-	idi[pos] = low + sys_size*(i - 1) + j - 1
-	idj[pos] = low + sys_size*(i - 1) + j - 1
+    for j=1:sys_size_local # insert block on diagonal
+	idi[pos] = low + sys_size_local*(i - 1) + j - 1
+	idj[pos] = low + sys_size_local*(i - 1) + j - 1
 	pos += 1
     end
 
     # add a random component
-    for i=1:sys_size
-      for j=1:sys_size
+    for i=1:sys_size_local
+      for j=1:sys_size_local
 	A_julia_t[i,j] += rand()
       end
     end

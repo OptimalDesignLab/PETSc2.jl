@@ -26,7 +26,7 @@ end
   """
   function PetscVec(mglobal::Integer, comm::MPI_Comm; mlocal=PETSC_DECIDE)
     vec = PetscVec(comm)
-    VecSetSizes(vec::PetscVec,nglobal, mlocal)
+    VecSetSizes(vec::PetscVec, mlocal, mglobal)
 
     return vec
   end
@@ -54,6 +54,7 @@ end
     err = ccall((:VecSetType,  libpetsclocation), PetscErrorCode, (Ptr{Void}, Cstring), vec.pobj,name);
   end
 
+  #TODO: make this better: use VecFromArray
   function PetscVec(array::Array{PetscScalar})
     vec = PetscVec()
     err = ccall(( :VecSetType,  libpetsclocation), PetscErrorCode,(Ptr{Void},Cstring), vec.pobj,"seq");
@@ -148,7 +149,16 @@ end
     err = ccall( ( :VecAssemblyEnd,  libpetsclocation), PetscErrorCode,(Ptr{Void},), obj.pobj);
   end
 
-  function VecSetSizes(vec::PetscVec,n::PetscInt, N::PetscInt)
+  """
+    Convenience function for calling VecAssemblyBegin, and VecAssemblyEnd, in
+    one go.
+  """
+  function VecAssemble(obj::PetscVec)
+    VecAssemblyBegin(obj)
+    VecAssemblyEnd(obj)
+  end
+
+  function VecSetSizes(vec::PetscVec,n::Integer, N::Integer)
     err = ccall( ( :VecSetSizes,  libpetsclocation), PetscErrorCode, (Ptr{Void}, PetscInt, PetscInt), vec.pobj,n,N);
   end
 
@@ -312,6 +322,13 @@ function VecDuplicate( vec::PetscVec)
     return PetscVec(ptr_arr[1])
 end
 
+import Base.copy
+function copy(vec::PetscVec)
+  b2 = VecDuplicate(vec)
+  VecCopy(vec, b2)
+
+  return b2
+end
 
 
 # Some vector linear algebra
@@ -323,7 +340,7 @@ function VecAXPBY(vec1::PetscVec, a::PetscScalar, b::PetscScalar, vec2::PetscVec
     ccall((:VecAXPBY,petsc),PetscErrorCode,(Ptr{Void},PetscScalar,PetscScalar,Ptr{Void}),vec1.pobj, a, b, vec2.pobj)
 end
 
-function VecMAXPY(vec1::PetscVec, n::PetscInt, a::AbstractArray{PetscScalar, 1}, x::AbstractArray{Ptr{Void}, 1})
+function VecMAXPY(vec1::PetscVec, n::Integer, a::AbstractArray{PetscScalar, 1}, x::AbstractArray{Ptr{Void}, 1})
 # the vector x must contains the pointers from the PetscVec objects, not the PetscVec objects themselves
 
     ccall((:VecMAXPY,petsc),PetscErrorCode,(Ptr{Void},PetscInt,Ptr{PetscScalar},Ptr{Ptr{Void}}),vec1.pobj, n, a, x)

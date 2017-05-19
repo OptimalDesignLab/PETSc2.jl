@@ -34,7 +34,8 @@ end
 PetscInitialize(["-ksp_monitor","-malloc","-malloc_debug","-malloc_dump"]);
 
 # size of the system owned by this process (ie. local sys size)
-sys_size = PetscInt(3)
+sys_size_local = PetscInt(3)
+sys_size_global = sys_size_local*comm_size
 
 # indicies of the vector owned by this process
 # create these with smallest precision, so they can be promoted
@@ -45,10 +46,10 @@ tmp3 = convert(Array{Complex64, 1}, [1.0 + 0im; 2.0 + 1.0im; 3.0 + 2.0im])
 tmp4 = convert( Array{Complex64, 2}, [1.0 + 1im   2 + 2im  3 + 3im; 4 + 4im  5 + 5im 7 + 7im; 7 + 7im 8 + 8im 9 + 9im])
 
 # Have both local and global versions of system for testing
-A_julia = zeros(PetscScalar, sys_size, sys_size)
-rhs = zeros(PetscScalar, sys_size)
-A_julia_global = zeros(PetscScalar, comm_size*sys_size, comm_size*sys_size)
-rhs_global = zeros(PetscScalar, comm_size*sys_size)
+A_julia = zeros(PetscScalar, sys_size_local, sys_size_local)
+rhs = zeros(PetscScalar, sys_size_local)
+A_julia_global = zeros(PetscScalar, comm_size*sys_size_local, comm_size*sys_size_local)
+rhs_global = zeros(PetscScalar, comm_size*sys_size_local)
 # convert to arrays of the proper Petsc type
 # this facilitates testing with the different Petsc build options
 
@@ -66,23 +67,23 @@ maxits = PetscInt(50)
 
 if PetscScalar <: Real
 
-  for i=1:sys_size
+  for i=1:sys_size_local
     rhs[i] = convert(PetscScalar, tmp2[i])
     
     for j=0:(comm_size - 1)  # global 
-      idx = i + j*sys_size
+      idx = i + j*sys_size_local
       rhs_global[idx] = convert(PetscScalar, tmp2[i])
     end    
 
   end
 
-  for i=1:sys_size
-    for j=1:sys_size
+  for i=1:sys_size_local
+    for j=1:sys_size_local
       A_julia[i,j] = convert(PetscScalar, tmp[i,j])
 
       for k=0:(comm_size - 1)
-        idxm = i + k*sys_size
-        idxn = j + k*sys_size
+        idxm = i + k*sys_size_local
+        idxn = j + k*sys_size_local
         A_julia_global[idxm, idxn] = convert(PetscScalar, tmp[i,j] )
       end
     end
@@ -92,24 +93,24 @@ end  # end if statement
 
 if PetscScalar <: Complex
 
-  for i=1:sys_size
+  for i=1:sys_size_local
     rhs[i] = convert(PetscScalar, tmp3[i])
 
     for j=0:(comm_size - 1)  # global 
-      idx = i + j*sys_size
+      idx = i + j*sys_size_local
       rhs_global[idx] = convert(PetscScalar, tmp3[i])
     end    
 
 
   end
 
-  for i=1:sys_size
-    for j=1:sys_size
+  for i=1:sys_size_local
+    for j=1:sys_size_local
       A_julia[i,j] = convert(PetscScalar, tmp4[i,j])
 
       for k=0:(comm_size - 1)
-        idxm = i + k*sys_size
-        idxn = j + k*sys_size
+        idxm = i + k*sys_size_local
+        idxn = j + k*sys_size_local
         A_julia_global[idxm, idxn] = convert(PetscScalar, tmp4[i,j] )
       end
  
