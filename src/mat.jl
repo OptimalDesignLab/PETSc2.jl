@@ -18,12 +18,22 @@ type PetscMat  <: AbstractArray{PetscScalar, 2}
   end
 end
 
-#=
+
 function PetscMat(mglobal::Integer, nglobal::Integer, comm::MPI_comm; mlocal=PETSC_DECIDE, nlocal=PETSC_DECIDE)
 
   mat = PetscMat(comm)
-  PetscMatSetSize(
-=#
+  PetscMatSetSize(mat, mlocal, nlocal, mglobal, nglobal)
+  return mat
+end
+
+function PetscMat(mglobal::Integer, nglobal::Integer, format, comm::MPI_Comm; mlocal=PETSC_DECIDE, nlocal=PETSC_DECIDE)
+
+  mat = PetscMat(mglobal, nglobal, comm, mlocal=mlocal, nlocal=nlocal)
+  MatSetType(mat, format)
+  return mat
+end
+
+
 
 function MatCreateShell(arg1::MPI_Comm,arg2::Integer,arg3::Integer,arg4::Integer,arg5::Integer, arg6::Ptr{Void})
   # arg6 is the user provided context
@@ -46,70 +56,19 @@ function MatShellGetContext(arg1::PetscMat)
     return arg2[]  # turn it into a julia object here?
 end
 
-function MatGetType(arg1::PetscMat)
-    arg2 = Ref{Ptr{UInt8}}()
-    ccall((:MatGetType,petsc),PetscErrorCode,(Ptr{Void}, Ref{Ptr{UInt8}}),arg1.pobj,arg2)
-    return bytestring(arg2[])
-end
 
-function MatCreateTranspose(arg1::PetscMat)
-  arg2 = Ref{Ptr{Void}}()
 
-  ccall((:MatCreateTranspose,petsc),PetscErrorCode,(Ptr{Void},Ptr{Ptr{Void}}),arg1.pobj, arg2)
 
-  return PetscMat(arg2[])
-end
 
-"""
-  Constructs the transpose of a given matrix.  Can be in place or out of place.
-
-  Inputs:
-    A: matrix to take the transpose of
-
-  Keywords:
-    inplace: whether or not to do the transpose in place
-
-  Outputs:
-    A PetscMat object, either the original object A if the transpose was done 
-    in place, or a new matrix object if the transpose was done out of place
-"""
-function MatTranspose(A::PetscMat; inplace::Bool=false, mat_initialized=false)
-  if inplace
-    B = Ref{Ptr{Void}}(A.pobj)
-    reuse = MAT_REUSE_MATRIX
-  else
-    B = Ref{Ptr{Void}}()
-    reuse = MAT_INITIAL_MATRIX
+function PetscDestroy(vec::PetscMat)
+  if (vec.pobj != 0)
+    err = ccall( (:MatDestroy,  libpetsclocation), PetscErrorCode, (Ptr{Ptr{Void}},), &vec.pobj);
   end
-
-  println("before, A.pobj = ", A.pobj)
-    ccall((:MatTranspose,petsc),PetscErrorCode,(Ptr{Void},MatReuse,Ptr{Ptr{Void}}),A.pobj, reuse, B)
-
-  println("after, A.pobj = ", A.pobj)
-  println("typeof(B) = ", typeof(B))
-  println("after, B[] = ", B[])
-
-  if inplace
-    return A
-  else
-    return PetscMat(B[])
-  end
-end
-
-
-
-
-
-
-  function PetscDestroy(vec::PetscMat)
-    if (vec.pobj != 0)
-      err = ccall( (:MatDestroy,  libpetsclocation), PetscErrorCode, (Ptr{Ptr{Void}},), &vec.pobj);
-    end
-#    vec.pobj = 0
+  vec.pobj = 0
 
 #    println("Petsc Mat Destroy called")
 #    sleep(5)
-  end
+end
 
 
 immutable MatInfo
@@ -129,7 +88,7 @@ immutable MatInfo
     end
 end
 
-
+import Base.show
 function show(io::IO, obj::MatInfo)
 # print the fields of PetscMatInfo
 #  println("PetscMatInfo:")
@@ -161,6 +120,14 @@ end
 
     MatSetOption(vec, MAT_ROW_ORIENTED, PETSC_TRUE)  # julia data is column-major
   end
+
+function MatGetType(arg1::PetscMat)
+    arg2 = Ref{Ptr{UInt8}}()
+    ccall((:MatGetType,petsc),PetscErrorCode,(Ptr{Void}, Ref{Ptr{UInt8}}),arg1.pobj,arg2)
+    return bytestring(arg2[])
+end
+
+
 
 #=
   PETSC_MAT_FLUSH_ASSEMBLY = 1;
@@ -348,6 +315,53 @@ end
 
     return err
   end
+
+"""
+  Constructs the transpose of a given matrix.  Can be in place or out of place.
+
+  Inputs:
+    A: matrix to take the transpose of
+
+  Keywords:
+    inplace: whether or not to do the transpose in place
+
+  Outputs:
+    A PetscMat object, either the original object A if the transpose was done 
+    in place, or a new matrix object if the transpose was done out of place
+"""
+function MatTranspose(A::PetscMat; inplace::Bool=false, mat_initialized=false)
+  if inplace
+    B = Ref{Ptr{Void}}(A.pobj)
+    reuse = MAT_REUSE_MATRIX
+  else
+    B = Ref{Ptr{Void}}()
+    reuse = MAT_INITIAL_MATRIX
+  end
+
+  println("before, A.pobj = ", A.pobj)
+    ccall((:MatTranspose,petsc),PetscErrorCode,(Ptr{Void},MatReuse,Ptr{Ptr{Void}}),A.pobj, reuse, B)
+
+  println("after, A.pobj = ", A.pobj)
+  println("typeof(B) = ", typeof(B))
+  println("after, B[] = ", B[])
+
+  if inplace
+    return A
+  else
+    return PetscMat(B[])
+  end
+end
+
+function MatCreateTranspose(arg1::PetscMat)
+  arg2 = Ref{Ptr{Void}}()
+
+  ccall((:MatCreateTranspose,petsc),PetscErrorCode,(Ptr{Void},Ptr{Ptr{Void}}),arg1.pobj, arg2)
+
+  return PetscMat(arg2[])
+end
+
+
+
 
   function PetscView(obj::PetscMat,viewer)
     err = ccall( (:MatView,  libpetsclocation), PetscErrorCode, (Ptr{Void}, Int64),obj.pobj,0);

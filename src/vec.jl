@@ -172,6 +172,9 @@ end
     return n[1]
   end
 
+
+  #TODO: VecGetLocalSize
+
   function VecNorm(obj::PetscVec,normtype::Integer)
     n = Array(PetscReal,1)
     err = ccall( ( :VecNorm,  libpetsclocation), PetscScalar, (Ptr{Void},Int32,Ptr{PetscReal}), obj.pobj,normtype, n);
@@ -209,6 +212,7 @@ function VecGetOwnershipRange(vec::PetscVec)
   return low[1], high[1]
 end
 
+#TODO; add function that returns the range of indices, not low:end + 1
 
 # new functions
 
@@ -279,6 +283,12 @@ function VecMax(vec::PetscVec)
     return r[1], idx[1]
 end
 
+import Base.maximum
+function maximum(x::PetscVec)
+  mval, idx = VecMax(x)
+  return mval
+end
+
 function VecMin(vec::PetscVec)
     r = Array(PetscReal, 1) # min value
     idx = Array(PetscInt, 1)  # index of min value
@@ -286,6 +296,11 @@ function VecMin(vec::PetscVec)
     ccall((:VecMin,petsc),PetscErrorCode,(Ptr{Void},Ptr{PetscInt},Ptr{PetscReal}), vec.pobj, idx, r)
 
     return r[1], idx[1]
+end
+import Base.minimum
+function min(x::PetscVec)
+  mval, idx = VecMin(x)
+  return mval
 end
 
 function VecReciprocal(vec::PetscVec)
@@ -363,12 +378,27 @@ function VecScale(vec::PetscVec, a::PetscScalar)
     ccall((:VecScale,petsc),PetscErrorCode,(Ptr{Void},PetscScalar), vec.pobj, a)
 end
 
+import Base.scale!
+function scale!(vec::PetscVec, a::Number)
+  _a = PetscScalar(a)
+  VecScale(vecc, _a)
+end
+
 function VecDot(x::PetscVec, y::PetscVec)
     r = Array(PetscScalar, 1)
     err = ccall((:VecDot,petsc),PetscErrorCode,( Ptr{Void}, Ptr{Void}, Ptr{PetscScalar}), x.pobj, y.pobj, r)
 
     println("PetscVecDot error code = ", err)
     return r[1]
+end
+
+import Base.dot
+"""
+  Dot product where the *first* vector is conjugated.  This is is the reverse
+  of VecDot, where the *second* vector is conjugated
+"""
+function dot(x::PetscVec, y::PetscVec)
+  VecDot(y, x)
 end
 
 function VecTDot(x::PetscVec, y::PetscVec)
@@ -385,6 +415,10 @@ function VecSum(vec::PetscVec)
     return r[1]
 end
 
+import Base.sum
+function sum(x::PetscVec)
+  VecSum(x)
+end
 
 function VecSwap(x::PetscVec, y::PetscVec)
     ccall((:VecSwap,petsc),PetscErrorCode,(Ptr{Void}, Ptr{Void}), x.pobj, y.pobj)

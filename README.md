@@ -36,6 +36,7 @@ An example of using a Krylov Sub-Space method to solve a linear system is in  `t
   * Provide methods that copy indices to proper size integer
   * Create warning system (`@inefficient` macro?) for use of copying methods
   * use `Ref{T}` instead of `&` for passing by reference
+  * Alias Petsc functions to Base functions where unambiguous
 
 ## Status
 ### Vector
