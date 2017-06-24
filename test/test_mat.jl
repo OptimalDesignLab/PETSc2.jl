@@ -1,5 +1,10 @@
 # test Petsc matrix functions
-facts("\n   ---testing matrix functions---") do 
+facts("\n   ---testing matrix functions---") do
+
+  A = PetscMat(sys_size_local, sys_size_local, "mpiaij", comm)
+  SetUp(A)
+
+  #=
   A = PetscMat(comm)
   MatSetType(A, "mpiaij")
 
@@ -7,16 +12,24 @@ facts("\n   ---testing matrix functions---") do
   SetUp(A);
 
   println("mat_type = ", MatGetType(A))
+  =#
+  B = PetscMat(sys_size_local, sys_size_local, "mpiaij", comm)
+  SetUp(B)
 
+  #=
   B = PetscMat(comm)
   MatSetType(B, "mpiaij")
 
   MatSetSizes(B,sys_size_local,sys_size_local, PetscInt(comm_size*sys_size_local),PetscInt(comm_size*sys_size_local));
   SetUp(B);
+  =#
 
+  x = PetscVec(PETSC_DECIDE, VECMPI,  comm, mlocal=sys_size)
+  #=
   x = PetscVec(comm);
   VecSetType(x, VECMPI);
   VecSetSizes(x,sys_size_local, PetscInt(comm_size*sys_size_local));
+  =#
 
   low, high = VecGetOwnershipRange(x)
   global_indices = Array(low:PetscInt(high - 1))

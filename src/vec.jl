@@ -1,5 +1,6 @@
 export PetscVec, VecSetType, VecSetValues, VecAssemblyBegin, VecAssemblyEnd, VecSetSizes, VecGetSize, VecNorm, VecGetValues, VecGetOwnershipRange, VecGetArray, VecRestoreArray, VecGetArrayRead, VecRestoreArrayRead, VecSet, VecSqrtAbs, VecLog, VecExp, VecAbs, VecMax, VecMin, VecCopy, VecDuplicate, VecAXPY, VecAXPBY, VecAYPX, VecWAXPY, VecMAXPY, VecAXPBYPCZ, VecScale, VecDot, VecTDot, VecSum, VecSwap, VecReciprocal, VecShift, VecPointwiseMult, VecPointwiseDivide, set_values1!, get_values1!
 
+export getLocalIndices
 
 type PetscVec
   pobj::Ptr{Void}
@@ -210,6 +211,12 @@ function VecGetOwnershipRange(vec::PetscVec)
     ccall((:VecGetOwnershipRange,petsc),PetscErrorCode,(Ptr{Void},Ptr{PetscInt},Ptr{PetscInt}),vec.pobj, low, high)
 
   return low[1], high[1]
+end
+
+function getLocalIndices(vec::PetscVec)
+
+  low, high = VecGetOwnershipRange(vec)
+  return Int(low):Int(high-1)
 end
 
 #TODO; add function that returns the range of indices, not low:end + 1

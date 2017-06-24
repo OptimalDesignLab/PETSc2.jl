@@ -19,10 +19,10 @@ type PetscMat  <: AbstractArray{PetscScalar, 2}
 end
 
 
-function PetscMat(mglobal::Integer, nglobal::Integer, comm::MPI_comm; mlocal=PETSC_DECIDE, nlocal=PETSC_DECIDE)
+function PetscMat(mglobal::Integer, nglobal::Integer, comm::MPI_Comm; mlocal=PETSC_DECIDE, nlocal=PETSC_DECIDE)
 
   mat = PetscMat(comm)
-  PetscMatSetSize(mat, mlocal, nlocal, mglobal, nglobal)
+  MatSetSizes(mat, mlocal, nlocal, mglobal, nglobal)
   return mat
 end
 
@@ -68,6 +68,7 @@ function PetscDestroy(vec::PetscMat)
 
 #    println("Petsc Mat Destroy called")
 #    sleep(5)
+  return 0
 end
 
 
