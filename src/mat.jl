@@ -169,9 +169,30 @@ end
   #----------------------------------------------------------------------------
   """
     1-based indexing for both regular and Pets matrices.
-    The flag must be either PETSC_INSERT_VALUES or PETSC_ADD_VALUES.
 
-    idxm and idxn cannot alias
+    **Inputs**
+    
+     * flag: PETSC_INSERT_VALUES or PETSC_ADD_VALUES.  Note that the first one
+             result in non-deterministic behavior in parallel (in the general
+             case)
+
+    * vals: the values, must be length(idxm) x length(idxn)
+
+    **Inputs/Outputs*
+
+     * mat: a matrix, can be a Petsc matrix or a julia matrix
+     * idxm: the row numbers
+     * idxn: the column numbers
+     
+
+    Note that idxm and idxn are listed as input/outputs because they may be
+    modified by this function, however when the function returns they
+    will have the same values as on entry.  This is needed to accomodate the
+    fact that Petsc uses 1 based indexing internally.
+
+    This function is optimized for PetscMat and SparseMatrixCSC
+
+    Aliasing restriction: idxm and idxn cannot alias
   """
   function set_values1!(mat::PetscMat, idxm::Array{PetscInt}, idxn::Array{PetscInt}, 
                         vals::Array{PetscScalar}, flag::Integer=PETSC_INSERT_VALUES)
@@ -246,7 +267,23 @@ end
     return PetscErrorCode(0)
   end
 
+  """
+    Like [`set_values1!](@ref), but retrieves values.  See that function for
+    the meanings of the arguments. Note that Petsc does
+    not support getting values for the non-local block of the matrix
 
+    **Inputs**
+
+     * mat: a matrix, can be a Petsc matrix or a julia matrix
+
+    **Inputs/Outputs**
+
+     * idxm
+     * idxn
+     * vals
+
+    Aliasing restrictions: idxm and idxn cannot alias
+  """
   function get_values1!(mat::PetscMat, idxm::Array{PetscInt}, idxn::Array{PetscInt}, 
                         vals::Array{PetscScalar})
 
@@ -332,10 +369,12 @@ end
 """
 function MatTranspose(A::PetscMat; inplace::Bool=false, mat_initialized=false)
   if inplace
+    println("doing inplace transpose")
     B = Ref{Ptr{Void}}(A.pobj)
     reuse = MAT_REUSE_MATRIX
   else
-    B = Ref{Ptr{Void}}()
+    println("doing out of place transpose")
+    B = Ref{Ptr{Void}}(C_NULL)
     reuse = MAT_INITIAL_MATRIX
   end
 
@@ -365,6 +404,7 @@ end
 
 
   function PetscView(obj::PetscMat,viewer)
+    #TODO: viewer isn't used?
     err = ccall( (:MatView,  libpetsclocation), PetscErrorCode, (Ptr{Void}, Int64),obj.pobj,0);
   end
 

@@ -1,7 +1,8 @@
 # test Petsc matrix functions
 facts("\n   ---testing matrix functions---") do
 
-  A = PetscMat(sys_size_local, sys_size_local, "mpiaij", comm)
+   A = PetscMat(PETSC_DECIDE, PETSC_DECIDE,  "mpiaij", comm, mlocal=sys_size_local, nlocal=sys_size_local)
+#  A = PetscMat(sys_size_local, sys_size_local, "mpiaij", comm)
   SetUp(A)
 
   #=
@@ -13,7 +14,7 @@ facts("\n   ---testing matrix functions---") do
 
   println("mat_type = ", MatGetType(A))
   =#
-  B = PetscMat(sys_size_local, sys_size_local, "mpiaij", comm)
+  B = PetscMat(PETSC_DECIDE, PETSC_DECIDE,  "mpiaij", comm, mlocal=sys_size_local, nlocal=sys_size_local)
   SetUp(B)
 
   #=
@@ -24,7 +25,7 @@ facts("\n   ---testing matrix functions---") do
   SetUp(B);
   =#
 
-  x = PetscVec(PETSC_DECIDE, VECMPI,  comm, mlocal=sys_size)
+  x = PetscVec(PETSC_DECIDE, VECMPI,  comm, mlocal=sys_size_local)
   #=
   x = PetscVec(comm);
   VecSetType(x, VECMPI);
@@ -62,11 +63,12 @@ facts("\n   ---testing matrix functions---") do
 
   y_julia = deepcopy(rhs)
 
-
+  MPI.Barrier(MPI.COMM_WORLD)
+  sleep(1*MPI.Comm_rank(MPI.COMM_WORLD))
   low, high = MatGetOwnershipRange(A)
   global_indices = Array(low:PetscInt(high - 1))
   println("comm_rank = ", comm_rank, " , global_indices = ", global_indices)
-
+#=
   global_row_ind = zeros(PetscInt, sys_size_local*sys_size_local)
   global_col_ind = zeros(PetscInt, sys_size_local*sys_size_local)
 
@@ -83,12 +85,19 @@ facts("\n   ---testing matrix functions---") do
 
   println("global_row_ind = ", global_row_ind)
   println("global_col_ind = ", global_col_ind)
+=#
   B_julia = A_julia + PetscScalar(1)
 
   # test set_values1!
   global_indices1 = global_indices + PetscInt(1)
   global_indices2 = global_indices + PetscInt(1)
   vals = rand(PetscScalar, sys_size_local, sys_size_local)
+
+  MPI.Barrier(MPI.COMM_WORLD)
+  sleep(1*MPI.Comm_rank(MPI.COMM_WORLD))
+  println("global_indices1 = \n", global_indices1)
+  println("global_indices2 = \n", global_indices2)
+  println("vals = \n", vals)
 
   set_values1!(A, global_indices1, global_indices2, vals)
   MatAssemblyBegin(A)
@@ -178,14 +187,15 @@ facts("\n   ---testing matrix functions---") do
   PetscDestroy(At)
   PetscDestroy(b2t)
   PetscDestroy(x2)
-#=
+
+
   # test MatTranpose
   println("testing out of place transpose")
   At = MatTranspose(A, inplace=false)
   vals = zeros(PetscScalar, sys_size_local, sys_size_local)
   valst = zeros(vals)
-  PetscMatGetValues(A, global_indices, global_indices, vals)
-  PetscMatGetValues(At, global_indices, global_indices, valst)
+  MatGetValues(A, global_indices, global_indices, vals)
+  MatGetValues(At, global_indices, global_indices, valst)
 
   for i=1:sys_size_local
     for j=1:sys_size_local
@@ -193,25 +203,32 @@ facts("\n   ---testing matrix functions---") do
     end
   end
 
+  println("A = ")
+  PetscView(A)
+  println("At = ")
+  PetscView(At)
+  PetscDestroy(At)
+
   println("testing in place transpose")
-  At = MatTranspose(At, inplace=true)
-  fill!(vals, 0.0)
+  At = MatTranspose(A, inplace=true)
+#  fill!(vals, 0.0)
   fill!(valst, 0.0)
-  PetscMatGetValues(A, global_indices, global_indices, vals)
-  PetscMatGetValues(At, global_indices, global_indices, valst)
+#  MatGetValues(A, global_indices, global_indices, vals)
+  MatGetValues(At, global_indices, global_indices, valst)
 
   println("vals = \n", vals)
   println("valst = \n", valst)
 
   for i=1:sys_size_local
     for j=1:sys_size_local
-      @fact vals[i, j] --> roughly(valst[i, j], atol=1e-12)
+      @fact vals[i, j] --> roughly(valst[j, i], atol=1e-12)
     end
   end
 
+  # transpose A back to normal
+  MatTranspose(A, inplace=true)
+#  PetscDestroy(At)
 
-  PetscDestroy(At)
-=#
 
 
 

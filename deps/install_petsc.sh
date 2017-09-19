@@ -1,6 +1,6 @@
 #!/bin/bash
 set -ex
-petsc_name=petsc-3.6.0
+petsc_name=petsc-3.7.6
 fmt=.tar.gz
 
 echo "building PETSc in `pwd`"

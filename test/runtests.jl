@@ -32,6 +32,7 @@ else  # serial run
 end
 
 PetscInitialize(["-ksp_monitor","-malloc","-malloc_debug","-malloc_dump"]);
+#PetscInitialize(["-ksp_monitor","-malloc","-malloc_debug"]);
 
 # size of the system owned by this process (ie. local sys size)
 sys_size_local = PetscInt(3)

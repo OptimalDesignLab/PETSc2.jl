@@ -89,7 +89,28 @@ end
 
 
   # 1-based indexing that unifies regular matrices and Petsc matrices
+  # TODO: generalize to AbstractArray when possible
   #----------------------------------------------------------------------------
+
+  """
+    1-based indexing for both regular vectors and Petsc vector
+
+    **Inputs**
+
+     * vals: values to add/insert into the vector, must be length(idx)
+     * flag: PETSC_INSERT_VALUES or PETSC_ADD_VALUES
+
+    **Inputs/Outputs**
+
+    * vec: the vector, can be a Petsc vector or a julia vector
+    * idx: (global) indices to add/insert vals into
+    
+    idx is listed as input/output because it may be modified during the function.
+    It will be returned to its original values when the function exits.
+    This is necessary to accomodate Petscs zero-based indexing interface
+
+
+  """
   function set_values1!(vec::PetscVec, idx::Array{PetscInt}, vals::Array{PetscScalar}, flag::Integer=PETSC_INSERT_VALUES)
     for i=1:length(idx)
       idx[i] -= 1
@@ -118,6 +139,21 @@ end
     return PetscErrorCode(0)
   end
 
+
+  """
+    Like [`set_values1!`](@ref) but for retrieving values.  Note that Petsc
+    only supports retrieving values from the local part of the vector
+
+    **Inputs**
+
+     * vec: a vector, can be a julia vector or a Petsc vector.
+     
+    **Inputs/Outputs**
+
+     * idx: indices to retrieve
+     * vals: array to put the values into
+
+  """
   function get_values1!(vec::PetscVec, idx::Array{PetscInt}, vals::Array{PetscScalar})
     for i=1:length(idx)
       idx[i] -= 1
@@ -219,7 +255,6 @@ function getLocalIndices(vec::PetscVec)
   return Int(low):Int(high-1)
 end
 
-#TODO; add function that returns the range of indices, not low:end + 1
 
 # new functions
 
