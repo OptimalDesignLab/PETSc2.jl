@@ -21,27 +21,6 @@ type PetscVec
  
 end
 
-  """
-    Create a vector of a given size.  Users can specify either the global
-    dimension or the local dimension
-  """
-  function PetscVec(mglobal::Integer, comm::MPI_Comm; mlocal=PETSC_DECIDE)
-    vec = PetscVec(comm)
-    VecSetSizes(vec::PetscVec, mlocal, mglobal)
-
-    return vec
-  end
-
-  """
-    Create a PetscVec, setting both the type and the format.  Users can specify
-    either the local or global dimensions
-  """
-  function PetscVec(mglobal::Integer, format, comm::MPI_Comm; mlocal=PETSC_DECIDE)
-    vec = PetscVec(mglobal, comm, mlocal=mlocal)
-    VecSetType(vec, format)
-    return vec
-  end
-
 
   function PetscDestroy(vec::PetscVec)
     if (vec.pobj != 0)
@@ -87,95 +66,6 @@ end
     VecSetValues(vec,idx,array,PETSC_INSERT_VALUES)
   end
 
-
-  # 1-based indexing that unifies regular matrices and Petsc matrices
-  # TODO: generalize to AbstractArray when possible
-  #----------------------------------------------------------------------------
-
-  """
-    1-based indexing for both regular vectors and Petsc vector
-
-    **Inputs**
-
-     * vals: values to add/insert into the vector, must be length(idx)
-     * flag: PETSC_INSERT_VALUES or PETSC_ADD_VALUES
-
-    **Inputs/Outputs**
-
-    * vec: the vector, can be a Petsc vector or a julia vector
-    * idx: (global) indices to add/insert vals into
-    
-    idx is listed as input/output because it may be modified during the function.
-    It will be returned to its original values when the function exits.
-    This is necessary to accomodate Petscs zero-based indexing interface
-
-
-  """
-  function set_values1!(vec::PetscVec, idx::Array{PetscInt}, vals::Array{PetscScalar}, flag::Integer=PETSC_INSERT_VALUES)
-    for i=1:length(idx)
-      idx[i] -= 1
-    end
-
-    err = VecSetValues(vec, idx, vals, flag)
-
-    for i=1:length(idx)
-      idx[i] += 1
-    end
-
-    return err
-  end
-
-  function set_values1!{T}(vec::AbstractVector, idx::Array{PetscInt}, vals::Array{T}, flag::Integer=PETSC_INSERT_VALUES)
-    if flag == PETSC_INSERT_VALUES
-      for i in idx
-        vec[i] = vals[i]
-      end
-    elseif flag == PETSC_ADD_VALUES
-      for i in idx
-        vec[i] += vals[i]
-      end
-    end
-
-    return PetscErrorCode(0)
-  end
-
-
-  """
-    Like [`set_values1!`](@ref) but for retrieving values.  Note that Petsc
-    only supports retrieving values from the local part of the vector
-
-    **Inputs**
-
-     * vec: a vector, can be a julia vector or a Petsc vector.
-     
-    **Inputs/Outputs**
-
-     * idx: indices to retrieve
-     * vals: array to put the values into
-
-  """
-  function get_values1!(vec::PetscVec, idx::Array{PetscInt}, vals::Array{PetscScalar})
-    for i=1:length(idx)
-      idx[i] -= 1
-    end
-
-    err = VecGetValues(vec, idx, vals)
-
-    for i=1:length(idx)
-      idx[i] += 1
-    end
-
-    return err
-  end
-
-
-  function get_values1!(vec::AbstractVector, idx::Array{PetscInt}, vals::Array)
-    for i=1:length(idx)
-      vals[i] = vec[idx[i]]
-    end
-
-    return PetscErrorCode(0)
-  end
 
 
   function VecAssemblyBegin(obj::PetscVec)
@@ -249,12 +139,6 @@ function VecGetOwnershipRange(vec::PetscVec)
   return low[1], high[1]
 end
 
-function getLocalIndices(vec::PetscVec)
-
-  low, high = VecGetOwnershipRange(vec)
-  return Int(low):Int(high-1)
-end
-
 
 # new functions
 
@@ -325,12 +209,6 @@ function VecMax(vec::PetscVec)
     return r[1], idx[1]
 end
 
-import Base.maximum
-function maximum(x::PetscVec)
-  mval, idx = VecMax(x)
-  return mval
-end
-
 function VecMin(vec::PetscVec)
     r = Array(PetscReal, 1) # min value
     idx = Array(PetscInt, 1)  # index of min value
@@ -339,12 +217,6 @@ function VecMin(vec::PetscVec)
 
     return r[1], idx[1]
 end
-import Base.minimum
-function min(x::PetscVec)
-  mval, idx = VecMin(x)
-  return mval
-end
-
 function VecReciprocal(vec::PetscVec)
     ccall((:VecReciprocal,petsc),PetscErrorCode,(Ptr{Void},),vec.pobj)
 end
@@ -377,14 +249,6 @@ function VecDuplicate( vec::PetscVec)
     ccall((:VecDuplicate,petsc),PetscErrorCode,( Ptr{Void}, Ptr{Ptr{Void}}), vec.pobj, ptr_arr)
 
     return PetscVec(ptr_arr[1])
-end
-
-import Base.copy
-function copy(vec::PetscVec)
-  b2 = VecDuplicate(vec)
-  VecCopy(vec, b2)
-
-  return b2
 end
 
 
@@ -434,15 +298,6 @@ function VecDot(x::PetscVec, y::PetscVec)
     return r[1]
 end
 
-import Base.dot
-"""
-  Dot product where the *first* vector is conjugated.  This is is the reverse
-  of VecDot, where the *second* vector is conjugated
-"""
-function dot(x::PetscVec, y::PetscVec)
-  VecDot(y, x)
-end
-
 function VecTDot(x::PetscVec, y::PetscVec)
     r = Array(PetscScalar, 1)
     ccall((:VecTDot,petsc),PetscErrorCode,(Ptr{Void}, Ptr{Void},Ptr{PetscScalar}), x.pobj, y.pobj, r)
@@ -457,14 +312,9 @@ function VecSum(vec::PetscVec)
     return r[1]
 end
 
-import Base.sum
-function sum(x::PetscVec)
-  VecSum(x)
-end
-
 function VecSwap(x::PetscVec, y::PetscVec)
     ccall((:VecSwap,petsc),PetscErrorCode,(Ptr{Void}, Ptr{Void}), x.pobj, y.pobj)
 
 end
 
-
+include("vec_interface.jl")
