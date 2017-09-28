@@ -371,21 +371,14 @@ end
 """
 function MatTranspose(A::PetscMat; inplace::Bool=false, mat_initialized=false)
   if inplace
-    println("doing inplace transpose")
     B = Ref{Ptr{Void}}(A.pobj)
     reuse = MAT_REUSE_MATRIX
   else
-    println("doing out of place transpose")
     B = Ref{Ptr{Void}}(C_NULL)
     reuse = MAT_INITIAL_MATRIX
   end
 
-  println("before, A.pobj = ", A.pobj)
     ccall((:MatTranspose,petsc),PetscErrorCode,(Ptr{Void},MatReuse,Ptr{Ptr{Void}}),A.pobj, reuse, B)
-
-  println("after, A.pobj = ", A.pobj)
-  println("typeof(B) = ", typeof(B))
-  println("after, B[] = ", B[])
 
   if inplace
     return A

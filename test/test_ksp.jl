@@ -30,16 +30,12 @@ function test_ksp()
 
     @fact reason => greater_than(0)  # convergence
 
-    PetscView(ksp)
-
     # copy solution back to Julia
     x_copy = zeros(PetscScalar, sys_size_local)
     VecGetValues(x, sys_size_local, x_global_indices, x_copy)
     for i=1:sys_size_local
         @fact x_copy[i] => roughly(x_julia[i], atol=1e-14)
     end
-
-    #PetscView(x, 0)
 
     PetscDestroy(ksp)
 
