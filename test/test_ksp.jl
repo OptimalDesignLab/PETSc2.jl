@@ -1,23 +1,28 @@
+function test_ksp()
+
 facts("\n   ---testing KSP solvers---") do
 # create vectors and matrices
 
+  b = make_vec()
 
+#=
   b = PetscVec(comm);
   VecSetType(b, "mpi");
   VecSetSizes(b,sys_size_local, PetscInt(comm_size*sys_size_local));
-
+=#
   low, high = VecGetOwnershipRange(b)
   b_global_indices = Array(low:PetscInt(high - 1))
  
-
+  x = make_vec()
+#= 
   x = PetscVec(comm);
   VecSetType(x,"mpi");
   VecSetSizes(x,sys_size_local, PetscInt(comm_size*sys_size_local));
-
+=#  
   low, high = VecGetOwnershipRange(x)
   x_global_indices = Array(low:PetscInt(high - 1))
- 
 
+#=
   for i=1:sys_size_local
     idxm = [ b_global_indices[i] ]   # index
     val = [ rhs[i] ]  # value
@@ -26,19 +31,24 @@ facts("\n   ---testing KSP solvers---") do
 
   VecAssemblyBegin(b)
   VecAssemblyEnd(b)
+=#
 
 
-
+  println("making matrix for ksp solve")  
+  A = make_mat()
+  MatTranspose(A, inplace=true)
+#=
   A = PetscMat(comm)
   MatSetType(A, "mpiaij")
 
   MatSetSizes(A,sys_size_local,sys_size_local,PetscInt(comm_size*sys_size_local),PetscInt(comm_size*sys_size_local));
   SetUp(A);
+=#
 
   low, high = MatGetOwnershipRange(A)
   mat_global_indices = Array(low:PetscInt(high - 1))
  
-
+#=
   for i=1:sys_size_local
     for j = 1:sys_size_local
       idxm = [ mat_global_indices[i] ]  # row index
@@ -49,7 +59,7 @@ facts("\n   ---testing KSP solvers---") do
 
   MatAssemblyBegin(A,PETSC_MAT_FINAL_ASSEMBLY);
   MatAssemblyEnd(A,PETSC_MAT_FINAL_ASSEMBLY);
-
+=#
 
 
 # perform solve
@@ -146,9 +156,6 @@ PCJacobiSetType(pc, PETSc.PC_JACOBI_ROWMAX)
 
 
 
-
-
-
 #=
 tmp = PCFactorGetUseInPlace(pc)
 println("tmp = ", tmp)
@@ -204,3 +211,11 @@ PetscDestroy(b)
 PetscDestroy(A)
 PetscDestroy(ksp)
 end
+
+return nothing
+end
+
+test_ksp()
+
+
+

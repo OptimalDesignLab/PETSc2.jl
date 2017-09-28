@@ -124,7 +124,6 @@ end  # end facts block
 return nothing
 end  # end function
 
-test_indexing()
 
 function test_transpose()
 facts("----- Testig Matrix Transpose -----") do
@@ -219,7 +218,6 @@ end
 return nothing
 end
 
-test_transpose()
 
 #=
   for i=1:sys_size_local
@@ -399,7 +397,6 @@ end
 return nothing
 end
 
-test_blas()
 
 
 function test_prealloc()
@@ -490,4 +487,8 @@ end
 return nothing
 end
 
+
+test_indexing()
+test_transpose()
+test_blas()
 test_prealloc()
