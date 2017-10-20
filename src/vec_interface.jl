@@ -114,6 +114,20 @@ function get_values1!(vec::AbstractVector, idx::Array{PetscInt}, vals::Array)
 end
 
 #TODO: VecAssemblyBegin/End?
+function assembly_begin(vec::PetscVec)
+  VecAssemblyBegin(vec)
+end
+
+function assembly_begin(vec::AbstractVector)
+end
+
+function assembly_end(vec::PetscVec)
+  VecAssemblyEnd(vec)
+end
+
+function assembly_end(vec::AbstractVector)
+end
+
 
 function getLocalIndices(vec::PetscVec)
 
@@ -142,6 +156,9 @@ function copy(vec::PetscVec)
   return b2
 end
 
+#TODO: length_local, length_global, size_local, size_global, fill_zero
+#      +, .*, -, (check for in-place versions), in-place transpose, copy!
+#      norm, fill!, maximum, minimum
 
 
 #TODO: extend blas routines
@@ -149,7 +166,7 @@ end
 import Base.scale!
 function scale!(vec::PetscVec, a::Number)
   _a = PetscScalar(a)
-  VecScale(vecc, _a)
+  VecScale(vec, _a)
 end
 
 import Base.dot

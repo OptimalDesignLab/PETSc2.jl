@@ -284,12 +284,6 @@ function VecScale(vec::PetscVec, a::PetscScalar)
     ccall((:VecScale,petsc),PetscErrorCode,(Ptr{Void},PetscScalar), vec.pobj, a)
 end
 
-import Base.scale!
-function scale!(vec::PetscVec, a::Number)
-  _a = PetscScalar(a)
-  VecScale(vecc, _a)
-end
-
 function VecDot(x::PetscVec, y::PetscVec)
     r = Array(PetscScalar, 1)
     err = ccall((:VecDot,petsc),PetscErrorCode,( Ptr{Void}, Ptr{Void}, Ptr{PetscScalar}), x.pobj, y.pobj, r)
