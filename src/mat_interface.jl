@@ -202,10 +202,126 @@ function assembly_end(mat::AbstractMatrix, flg::Integer)
 end
 
 #TODO: transpose, inplace and/out out of place
+import Base: transpose, transpose!
 
 # PetscView?
+"""
+  Print a non-Petsc matrix to a given IO (a Julia IO, not a Petsc IO)
 
-#TODO: size_local, size_global, getLocalIndices, fill_zero, norm, scale!,
-#       mat*vec, mat.'*vec
+  **Inputs**
 
+   * A: the matrix
+   * f: an IO, default STDOUT
+"""
+function PetscView(A::AbstractMatrix, f::IO=STDOUT)
+  println(f, "A = \n", A)
+end
+
+"""
+  size of local part of matrix
+"""
+function size_local(A::PetscMat)
+  return MatGetLocalSize(A)
+end
+
+function size_local(A::AbstractMatrix)
+  return size(A)
+end
+
+"""
+  Global size of matrix, same as size_local() for serial matrices
+"""
+function size_global(A::PetscMat)
+  return MatGetSize(A)
+end
+
+function size_global(A::AbstractMatrix)
+  return size(A)
+end
+
+"""
+  Returns the rows owned by this process (1-based)
+
+  **Inputs**
+
+   * A: a matrix
+
+  **Outputs**
+
+   * rng: a UnitRange
+"""
+function local_indices(A::PetscMat)
+  low, high = MatGetOwnershipRange(A)
+  return (low+1):high
+end
+
+function local_indices(A::AbstractMatrix)
+  return 1:size(A, 1)
+end
+
+"""
+  Fill the matrix with zeros.  The sparsity pattern of the matrix (if applicable)
+  should be defined before this function is called
+
+"""
+function fill_zero!(A::PetscMat)
+  MatZeroEntries(A)
+end
+
+function fill_zero!(A::AbstractMatrix)
+  fill!(A, 0.0)
+end
+
+function fill_zero!(A::SparseMatrixCSC)
+  fill!(A.nzval, 0.0)
+end
+
+import Base.scale!
+"""
+  scale! for Petsc matrix
+"""
+function scale!(A::PetscMat, a::Number)
+  MatScale(A, a)
+end
+
+import Base: norm, vecnorm
+
+"""
+  Norm for Petsc matrices, 1, 2, and infinity norms supported
+"""
+function norm(A::PetscMat, p::Number)
+  if p == 1
+    _p = NORM_1
+  elseif p == 2
+    _p = norm_2
+  elseif p == Inf
+    _p = NORM_INFINITY
+  end
+  MatNorm(A, _p)
+end
+
+"""
+  Frobenius norm, consistent with Julias interface
+"""
+function vecnorm(A::PetscMat)
+  MatNorm(A, NORM_FROBENIUS)
+end
+
+import Base: A_mul_B!, At_mul_B!
+
+"""
+  Computes b = A*x
+"""
+function A_mul_B!(b::PetscVec, A::PetscMat, x::PetscVec)
+  MatMult(A, b, x)
+  return b
+end
+
+"""
+  Computes b = A.'*x
+"""
+function At_mul_B!(b::PetscVec, A::PetscMat, x::PetscVec)
+  MatMultTranspose(A, x, b)
+  return b
+end
 

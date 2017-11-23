@@ -229,9 +229,9 @@ end
 
 
 
-  function PetscView(obj::PetscMat,viewer)
+  function PetscView(obj::PetscMat,viewer::PetscViewer=C_NULL)
     #TODO: viewer isn't used?
-    err = ccall( (:MatView,  libpetsclocation), PetscErrorCode, (Ptr{Void}, Int64),obj.pobj,0);
+    err = ccall( (:MatView,  libpetsclocation), PetscErrorCode, (Ptr{Void}, Ptr{Void}),obj.pobj,viewer);
   end
 
   function MatGetSize(obj::PetscMat)

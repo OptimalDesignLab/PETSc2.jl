@@ -94,6 +94,8 @@ const PETSC_PRECISION_SINGLE = (UInt32)(4)
 const PETSC_PRECISION_DOUBLE = (UInt32)(8)
 =#
 
+typealias PetscViewer Ptr{Void}
+
 const PETSC_FALSE = (UInt32)(0)
 const PETSC_TRUE = (UInt32)(1)
 
