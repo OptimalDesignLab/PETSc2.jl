@@ -4,6 +4,10 @@ export PC, KSPGetPC, PCSetType, PCGetType, PCFactorSetUseInPlace, PCFactorGetUse
 export PCShellSetApply, PCShellSetApplyTranspose, PCShellSetSetUp,
        PCShellSetContext, PCShellGetContext
 
+# developer PC interface
+export PCApply, PCSetUp, PCApplyTranspose, PCApplyTransposeExists
+
+
 
 # preconditioner contex
 # the KSP object creates the PC contex, so we don't provide a constructor

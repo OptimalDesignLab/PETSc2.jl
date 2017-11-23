@@ -225,6 +225,9 @@ include("ksp.jl")
 # -------------------------------------
 include("pc.jl")
 
+# -------------------------------------
+include("options.jl")
+
 end  # end module
 
 
