@@ -146,6 +146,7 @@ function VecGetArray(vec::PetscVec)
 # gets a pointer to the data underlying a Petsc vec, turns it into a Julia
 # array
 # ptr_arr must be passed into PetscVecRestoreArray
+    #TODO: use pointer(arr) to avoid returning ptr_arr
     ptr_arr = Array(Ptr{PetscScalar}, 1)
     ccall((:VecGetArray,petsc),PetscErrorCode,(Ptr{Void}, Ptr{Ptr{PetscScalar}}),vec.pobj, ptr_arr)
 

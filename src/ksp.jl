@@ -1,7 +1,10 @@
 
-export KSP, SetOperators, SetFromOptions, KSPSolve,  SetUp
+export KSP, SetOperators, SetFromOptions, KSPSolve,  SetUp, KSPSolveTranspose, KSP_NULL
+
+global const KSP_NULL = KSP(C_NULL)
 
 export GetConvergedReason, PetscView, SetType, GetType, SetTolerances, GetTolerances, SetInitialGuessNonzero, GetInitialGuessNonzero, GetResidualNorm
+
 
 type KSP
   pobj::Ptr{Void}
