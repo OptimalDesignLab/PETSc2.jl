@@ -105,10 +105,7 @@ end
   function SetUp(vec::PetscMat)
     err = ccall( ( :MatSetUp,  libpetsclocation), PetscErrorCode, (Ptr{Void},), vec.pobj);
 
-    #TODO: move this to the constructor
-    #TODO: this should be false?
-    MatSetOption(vec, MAT_ROW_ORIENTED, PETSC_TRUE)  # julia data is column-major
-  end
+ end
 
 function MatGetType(arg1::PetscMat)
     arg2 = Ref{Ptr{UInt8}}()

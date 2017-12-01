@@ -2,6 +2,9 @@ export PetscVec, VecSetType, VecSetValues, VecAssemblyBegin, VecAssemblyEnd, Vec
 
 export getLocalIndices
 
+"""
+Petsc Vector type
+"""
 type PetscVec
   pobj::Ptr{Void}
   function PetscVec(comm::MPI_Comm)
