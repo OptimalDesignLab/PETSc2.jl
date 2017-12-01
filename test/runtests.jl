@@ -133,6 +133,7 @@ x_julia = A_julia\rhs
 include("test_vec.jl")
 include("test_vec_interface.jl")
 include("test_mat.jl")
+include("test_mat_interface.jl")
 include("test_ksp.jl")
 include("test_options.jl")
 #include("test_prealloc.jl")

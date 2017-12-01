@@ -2,17 +2,18 @@
 # the Julia sparse matrix interface is ill-defined, so this may take some
 # liberties
 
+#=
 function PetscMat(mglobal::Integer, nglobal::Integer, comm::MPI_Comm; mlocal=PETSC_DECIDE, nlocal=PETSC_DECIDE)
+
+  return mat
+end
+=#
+function PetscMat(mglobal::Integer, nglobal::Integer, format, comm::MPI_Comm; mlocal=PETSC_DECIDE, nlocal=PETSC_DECIDE)
 
   mat = PetscMat(comm)
   MatSetSizes(mat, mlocal, nlocal, mglobal, nglobal)
-  return mat
-end
-
-function PetscMat(mglobal::Integer, nglobal::Integer, format, comm::MPI_Comm; mlocal=PETSC_DECIDE, nlocal=PETSC_DECIDE)
-
-  mat = PetscMat(mglobal, nglobal, comm, mlocal=mlocal, nlocal=nlocal)
   MatSetType(mat, format)
+
   return mat
 end
 
@@ -188,7 +189,7 @@ end
 
 
 function assembly_begin(mat::PetscMat, flg::Integer)
-  MatAsseblyBegin(mat, flg)
+  MatAssemblyBegin(mat, flg)
 end
 
 function assembly_begin(mat::AbstractMatrix, flg::Integer)
@@ -281,7 +282,7 @@ import Base.scale!
   scale! for Petsc matrix
 """
 function scale!(A::PetscMat, a::Number)
-  MatScale(A, a)
+  MatScale(A, PetscScalar(a))
 end
 
 """
@@ -315,7 +316,7 @@ function norm(A::PetscMat, p::Number)
   if p == 1
     _p = NORM_1
   elseif p == 2
-    _p = norm_2
+    _p = NORM_2
   elseif p == Inf
     _p = NORM_INFINITY
   end
@@ -335,7 +336,7 @@ import Base: A_mul_B!, At_mul_B!
   Computes b = A*x
 """
 function A_mul_B!(b::PetscVec, A::PetscMat, x::PetscVec)
-  MatMult(A, b, x)
+  MatMult(A, x, b)
   return b
 end
 
