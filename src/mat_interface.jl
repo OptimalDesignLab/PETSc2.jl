@@ -14,6 +14,7 @@ function PetscMat(mglobal::Integer, nglobal::Integer, format, comm::MPI_Comm; ml
   MatSetSizes(mat, mlocal, nlocal, mglobal, nglobal)
   MatSetType(mat, format)
 
+
   return mat
 end
 
@@ -36,6 +37,9 @@ end
   #----------------------------------------------------------------------------
   """
     1-based indexing for both regular and Pets matrices.
+    Note that Petsc treats arrays at being row-major, so it is recommened
+    to set MatSetOption(mat, MAT_ROW_ORIENTED, PETSC_FALSE) before using
+    this function.
 
     **Inputs**
     
