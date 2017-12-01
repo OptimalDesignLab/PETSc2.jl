@@ -1,6 +1,10 @@
 # a support the Julia-ish interface when it maps cleanly onto a distributed
 # vector
 
+export set_values1!, get_values1!, assembly_begin, assembly_end, size_local,
+       size_global, length_local, length_global, local_indices, fill_zero!,
+       diagonal_shift!
+
 #TODO: set Petsc to interpret arrays as column-major
 
 """
@@ -128,13 +132,78 @@ end
 function assembly_end(vec::AbstractVector)
 end
 
-
-function getLocalIndices(vec::PetscVec)
-
-  low, high = VecGetOwnershipRange(vec)
-  return Int(low):Int(high-1)
+"""
+  Print non-Petsc vector to a given IO (a Julia IO, not a Petsc IO).  Defaults
+  to printing to STDOUT.
+"""
+function PetscView(b::AbstractVector, f::IO=STDOUT)
+  println(f, "b = \n", a)
 end
 
+"""
+  Size of local part of vector
+"""
+function size_local(A::PetscVec)
+  return (VecGetLocalSize(A), )
+end
+
+function size_local(A::AbstractVector)
+  return size(A)
+end
+
+"""
+  Size of global vector
+"""
+function size_global(A::PetscVec)
+  return (VecGetSize(A), )
+end
+
+function size_global(A::AbstractVector)
+  return size(A)
+end
+
+"""
+  Length of local part of vector
+"""
+function length_local(A::AllVectors)
+  return size_local(A)[1]
+end
+
+"""
+  Length of global vector
+"""
+function length_global(A::AllVectors)
+  return size_local(A)[1]
+end
+
+"""
+  Returns a UnitRange containing the (1-based) global indices owned by this
+  process.
+"""
+function local_indices(vec::PetscVec)
+
+  low, high = VecGetOwnershipRange(vec)
+  return Int(low+1):Int(high)
+end
+
+function local_indices(vec::AbstractVector)
+  return 1:length(vec)  #TODO: update in future versions of Julia
+end
+
+
+
+function fill_zero!(A::PetscVec)
+  VecSet(A, PetscScalar(0.0))
+end
+
+function fill_zero!(A::AbstractVector)
+  fill!(A, 0.0)
+end
+
+import Base.fill!
+function fill!(A::PetscVec, a)
+  VecSet(A, PetscScalar(a))
+end
 
 import Base.maximum
 function maximum(x::PetscVec)
@@ -143,7 +212,7 @@ function maximum(x::PetscVec)
 end
 
 import Base.minimum
-function min(x::PetscVec)
+function minimum(x::PetscVec)
   mval, idx = VecMin(x)
   return mval
 end
@@ -156,9 +225,16 @@ function copy(vec::PetscVec)
   return b2
 end
 
-#TODO: length_local, length_global, size_local, size_global, fill_zero
-#      +, .*, -, (check for in-place versions), in-place transpose, copy!
-#      norm, fill!, maximum, minimum
+import Base.copy!
+#TODO: check if this causes ambiguities
+function copy!(dest::PetscVec, src::PetscVec)
+  VecCopy(src, dest)
+end
+
+
+#TODO:
+#      +, .*, -, (check for in-place versions),
+#      
 
 
 #TODO: extend blas routines
@@ -168,6 +244,35 @@ function scale!(vec::PetscVec, a::Number)
   _a = PetscScalar(a)
   VecScale(vec, _a)
 end
+
+"""
+  Add a given value to all elements of the vector
+"""
+function diagonal_shift!(A::PetscVec, a::Number)
+  VecShift(A, PetscScalar(a))
+end
+
+function diagonal_shift!(A::AbstractMatrix, a::Number)
+  @simd for i=1:length(A)
+    A[i] += a
+  end
+end
+
+import Base.norm
+function norm(A::PetscVec, p=2)
+  if p == 1
+    _p = NORM_1
+  elseif p == 2
+    _p = NORM_2
+  elseif p == Inf
+    _p = NORM_INFINITY
+  else
+    error("Petsc Vectors do not support norm p = $p")
+  end
+
+  VecNorm(A, _p)
+end
+
 
 import Base.dot
 """

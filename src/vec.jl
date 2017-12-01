@@ -1,4 +1,4 @@
-export PetscVec, VecSetType, VecSetValues, VecAssemblyBegin, VecAssemblyEnd, VecSetSizes, VecGetSize, VecNorm, VecGetValues, VecGetOwnershipRange, VecGetArray, VecRestoreArray, VecGetArrayRead, VecRestoreArrayRead, VecSet, VecSqrtAbs, VecLog, VecExp, VecAbs, VecMax, VecMin, VecCopy, VecDuplicate, VecAXPY, VecAXPBY, VecAYPX, VecWAXPY, VecMAXPY, VecAXPBYPCZ, VecScale, VecDot, VecTDot, VecSum, VecSwap, VecReciprocal, VecShift, VecPointwiseMult, VecPointwiseDivide, set_values1!, get_values1!
+export PetscVec, VecSetType, VecSetValues, VecAssemblyBegin, VecAssemblyEnd, VecSetSizes, VecGetSize, VecGetLocalSize, VecNorm, VecGetValues, VecGetOwnershipRange, VecGetArray, VecRestoreArray, VecGetArrayRead, VecRestoreArrayRead, VecSet, VecSqrtAbs, VecLog, VecExp, VecAbs, VecMax, VecMin, VecCopy, VecDuplicate, VecAXPY, VecAXPBY, VecAYPX, VecWAXPY, VecMAXPY, VecAXPBYPCZ, VecScale, VecDot, VecTDot, VecSum, VecSwap, VecReciprocal, VecShift, VecPointwiseMult, VecPointwiseDivide
 
 export getLocalIndices
 
@@ -21,6 +21,7 @@ type PetscVec
  
 end
 
+typealias AllVectors Union{AbstractVector, PetscVec}
 
   function PetscDestroy(vec::PetscVec)
     if (vec.pobj != 0)
@@ -98,6 +99,13 @@ end
     err = ccall( ( :VecGetSize,  libpetsclocation), PetscErrorCode, (Ptr{Void},Ptr{PetscInt}), obj.pobj,n);
     return n[1]
   end
+
+  function VecGetLocalSize(arg1::PetscVec)
+    arg2 = Ref{PetscInt}()
+    ccall((:VecGetLocalSize,petsc),PetscErrorCode,(Ptr{Void},Ptr{PetscInt}),arg1.pobj,arg2)
+    return arg2[]
+end
+
 
 
   #TODO: VecGetLocalSize

@@ -284,6 +284,28 @@ function scale!(A::PetscMat, a::Number)
   MatScale(A, a)
 end
 
+"""
+  Adds the specified value to the diagonal of the matrix
+
+  **Inputs**
+
+   * A: the matrix
+   * a: the value
+"""
+function diagonal_shift!(A::PetscMat, a::Number)
+  MatShift(A, PetscScalar(a))
+end
+
+function diagonal_shift!(A::AbstractMatrix, a::Number)
+
+  nmax = min(size(A, 1), size(A, 2))
+  @simd for i=1:nmax
+    A[i, i] += 1
+  end
+end
+#TODO; optimized implementation for SparseMatrixCSC
+
+
 import Base: norm, vecnorm
 
 """

@@ -236,7 +236,7 @@ facts("----- Testing Matrix BLAS -----") do
   @fact MatGetSize(A) => (comm_size*sys_size_local, comm_size*sys_size_local)
   @fact MatGetLocalSize(A) => (sys_size_local, sys_size_local)
   # testing non zero exist code is all we can really do here
-  @fact PetscView(A, 0) => 0
+  @fact PetscView(A) => 0
 
   alpha = PetscScalar(2.3)
 
