@@ -8,7 +8,24 @@ function PetscMat(mglobal::Integer, nglobal::Integer, comm::MPI_Comm; mlocal=PET
   return mat
 end
 =#
-function PetscMat(mglobal::Integer, nglobal::Integer, format, comm::MPI_Comm; mlocal=PETSC_DECIDE, nlocal=PETSC_DECIDE)
+
+"""
+  Constructor
+
+  **Inputs**
+
+   * mglobal: first dimension global size (or PETSC_DECIDE)
+   * nglobal: second dimension global size (or PETSC_DECIDE)
+   * format: matrix format
+   * comm: MPI communicator
+
+  **Keyword Arguments**
+
+   * mlocal: first dimension local size (or PETSC_DECIDE)
+   * nlocal: second dimension local size (or PETSC_DECIDE)
+"""
+function PetscMat(mglobal::Integer, nglobal::Integer, format, comm::MPI_Comm;
+                  mlocal=PETSC_DECIDE, nlocal=PETSC_DECIDE)
 
   mat = PetscMat(comm)
   MatSetSizes(mat, mlocal, nlocal, mglobal, nglobal)
@@ -18,6 +35,7 @@ function PetscMat(mglobal::Integer, nglobal::Integer, format, comm::MPI_Comm; ml
   return mat
 end
 
+#=
 function PetscDestroy(vec::PetscMat)
   if (vec.pobj != 0)
     err = ccall( (:MatDestroy,  libpetsclocation), PetscErrorCode, (Ptr{Ptr{Void}},), &vec.pobj);
@@ -28,170 +46,193 @@ function PetscDestroy(vec::PetscMat)
 #    sleep(5)
   return 0
 end
+=#
 
+"""
+  PetscDestroy for AbstractMatrix.  No-op
+"""
 function PetscDestroy(mat::AbstractMatrix)
 end
 
 
 # 1-based indexing for both Petsc and regular matrices
-  #----------------------------------------------------------------------------
-  """
-    1-based indexing for both regular and Pets matrices.
-    Note that Petsc treats arrays at being row-major, so it is recommened
-    to set MatSetOption(mat, MAT_ROW_ORIENTED, PETSC_FALSE) before using
-    this function.
+#----------------------------------------------------------------------------
+"""
+  1-based indexing for both regular and Pets matrices.
+  Note that Petsc treats arrays at being row-major, so it is recommened
+  to set MatSetOption(mat, MAT_ROW_ORIENTED, PETSC_FALSE) before using
+  this function.
 
-    **Inputs**
-    
-     * flag: PETSC_INSERT_VALUES or PETSC_ADD_VALUES.  Note that the first one
-             result in non-deterministic behavior in parallel (in the general
-             case)
+  **Inputs**
+  
+   * flag: PETSC_INSERT_VALUES or PETSC_ADD_VALUES.  Note that the first one
+           result in non-deterministic behavior in parallel (in the general
+           case)
 
-    * vals: the values, must be length(idxm) x length(idxn)
+  * vals: the values, must be length(idxm) x length(idxn)
 
-    **Inputs/Outputs*
+  **Inputs/Outputs**
 
-     * mat: a matrix, can be a Petsc matrix or a julia matrix
-     * idxm: the row numbers
-     * idxn: the column numbers
-     
+   * mat: a matrix, can be a Petsc matrix or a julia matrix
+   * idxm: the row numbers
+   * idxn: the column numbers
+   
 
-    Note that idxm and idxn are listed as input/outputs because they may be
-    modified by this function, however when the function returns they
-    will have the same values as on entry.  This is needed to accomodate the
-    fact that Petsc uses 1 based indexing internally.
+  Note that idxm and idxn are listed as input/outputs because they may be
+  modified by this function, however when the function returns they
+  will have the same values as on entry.  This is needed to accomodate the
+  fact that Petsc uses 1 based indexing internally.
 
-    This function is optimized for PetscMat and SparseMatrixCSC
+  This function is optimized for PetscMat and SparseMatrixCSC
 
-    Aliasing restriction: idxm and idxn cannot alias
-  """
-  function set_values1!(mat::PetscMat, idxm::Array{PetscInt}, idxn::Array{PetscInt}, 
-                        vals::Array{PetscScalar}, flag::Integer=PETSC_INSERT_VALUES)
+  Aliasing restriction: idxm and idxn cannot alias
+"""
+function set_values1!(mat::PetscMat, idxm::Array{PetscInt}, idxn::Array{PetscInt}, 
+                      vals::Array{PetscScalar}, flag::Integer=PETSC_INSERT_VALUES)
 
-    for i=1:length(idxm)
-      idxm[i] -= 1
-    end
-
-    for i=1:length(idxn)
-      idxn[i] -= 1
-    end
-
-    err = MatSetValues(mat, idxm, idxn, vals, flag)
-
-    for i=1:length(idxm)
-      idxm[i] += 1
-    end
-
-    for i=1:length(idxn)
-      idxn[i] += 1
-    end
-
-    return err
+  for i=1:length(idxm)
+    idxm[i] -= 1
   end
 
-  function set_values1!{T}(mat::AbstractMatrix, idxm::Array{PetscInt}, idxn::Array{PetscInt}, 
-                           vals::Array{T}, flag::Integer=PETSC_INSERT_VALUES)
-
-    if flag == PETSC_INSERT_VALUES
-      for i=1:length(idxn)
-        for j=1:length(idxm)
-          mat[idxm[j], idxn[i]] = vals[j, i]
-        end
-      end
-    elseif flag == PETSC_ADD_VALUES
-      for i=1:length(idxn)
-        for j=1:length(idxm)
-          mat[idxm[j], idxn[i]] += vals[j, i]
-        end
-      end
-    end
-
-    return PetscErrorCode(0)
+  for i=1:length(idxn)
+    idxn[i] -= 1
   end
 
-  function set_values1!{T}(mat::SparseMatrixCSC, idxm::Array{PetscInt}, idxn::Array{PetscInt}, 
-                           vals::Array{T}, flag::Integer=PETSC_INSERT_VALUES)
+  err = MatSetValues(mat, idxm, idxn, vals, flag)
 
-    if flag == PETSC_INSERT_VALUES
-      for i=1:length(idxn)
-        for j=1:length(idxm)
-          mat[idxm[j], idxn[i]] = vals[j, i]
-        end
-      end
-    elseif flag == PETSC_ADD_VALUES  # optimized += implementation
-      # hoist
-      colptr = mat.colptr
-      rowval = mat.rowval
-      nzval = mat.nzval
-      for i=1:length(idxn)
-        row_start = colptr[idxn[i]]
-        row_end = colptr[idxn[i]+1] - 1
-        rowvals_extract = unsafe_view(rowval, row_start:row_end)
-        for j=1:length(idxm)
-          idx = searchsortedfirst(rowvals_extract, idxm[j])
-          idx = row_start + idx - 1
-          nzval[idx] += vals[j, i]
-        end
-      end
-    end
-
-    return PetscErrorCode(0)
+  for i=1:length(idxm)
+    idxm[i] += 1
   end
 
-  """
-    Like [`set_values1!](@ref), but retrieves values.  See that function for
-    the meanings of the arguments. Note that Petsc does
-    not support getting values for the non-local block of the matrix
-
-    **Inputs**
-
-     * mat: a matrix, can be a Petsc matrix or a julia matrix
-
-    **Inputs/Outputs**
-
-     * idxm
-     * idxn
-     * vals
-
-    Aliasing restrictions: idxm and idxn cannot alias
-  """
-  function get_values1!(mat::PetscMat, idxm::Array{PetscInt}, idxn::Array{PetscInt}, 
-                        vals::Array{PetscScalar})
-
-    for i=1:length(idxm)
-      idxm[i] -= 1
-    end
-
-    for i=1:length(idxn)
-      idxn[i] -= 1
-    end
-
-    err = MatGetValues(mat, idxm, idxn, vals)
-
-    for i=1:length(idxm)
-      idxm[i] += 1
-    end
-
-    for i=1:length(idxn)
-      idxn[i] += 1
-    end
-
-    return err
+  for i=1:length(idxn)
+    idxn[i] += 1
   end
 
-  function get_values1!(mat::AbstractMatrix, idxm::Array{PetscInt}, idxn::Array{PetscInt}, 
-                        vals::Array)
+  return err
+end
 
+"""
+  Method for AbstractMatrix
+"""
+function set_values1!{T}(mat::AbstractMatrix, idxm::Array{PetscInt},
+                         idxn::Array{PetscInt}, vals::Array{T},
+                         flag::Integer=PETSC_INSERT_VALUES)
+
+  if flag == PETSC_INSERT_VALUES
     for i=1:length(idxn)
       for j=1:length(idxm)
-        vals[j, i] = mat[idxm[j], idxn[i]]
+        mat[idxm[j], idxn[i]] = vals[j, i]
       end
     end
-
-    return PetscErrorCode(0)
+  elseif flag == PETSC_ADD_VALUES
+    for i=1:length(idxn)
+      for j=1:length(idxm)
+        mat[idxm[j], idxn[i]] += vals[j, i]
+      end
+    end
   end
 
+  return PetscErrorCode(0)
+end
 
+"""
+  Method for `SparseMatrixCSC`
+"""
+function set_values1!{T}(mat::SparseMatrixCSC, idxm::Array{PetscInt},
+                         idxn::Array{PetscInt}, vals::Array{T},
+                         flag::Integer=PETSC_INSERT_VALUES)
+
+  if flag == PETSC_INSERT_VALUES
+    for i=1:length(idxn)
+      for j=1:length(idxm)
+        mat[idxm[j], idxn[i]] = vals[j, i]
+      end
+    end
+  elseif flag == PETSC_ADD_VALUES  # optimized += implementation
+    # hoist
+    colptr = mat.colptr
+    rowval = mat.rowval
+    nzval = mat.nzval
+    for i=1:length(idxn)
+      row_start = colptr[idxn[i]]
+      row_end = colptr[idxn[i]+1] - 1
+      rowvals_extract = unsafe_view(rowval, row_start:row_end)
+      for j=1:length(idxm)
+        idx = searchsortedfirst(rowvals_extract, idxm[j])
+        idx = row_start + idx - 1
+        nzval[idx] += vals[j, i]
+      end
+    end
+  end
+
+  return PetscErrorCode(0)
+end
+
+"""
+  Like [`set_values1!`](@ref), but retrieves values.  See that function for
+  the meanings of the arguments. Note that Petsc does
+  not support getting values for the non-local block of the matrix
+
+  **Inputs**
+
+   * mat: a matrix, can be a Petsc matrix or a julia matrix
+
+  **Inputs/Outputs**
+
+   * idxm
+   * idxn
+   * vals
+
+  Aliasing restrictions: idxm and idxn cannot alias
+"""
+function get_values1!(mat::PetscMat, idxm::Array{PetscInt},
+                      idxn::Array{PetscInt}, 
+                      vals::Array{PetscScalar})
+
+  for i=1:length(idxm)
+    idxm[i] -= 1
+  end
+
+  for i=1:length(idxn)
+    idxn[i] -= 1
+  end
+
+  err = MatGetValues(mat, idxm, idxn, vals)
+
+  for i=1:length(idxm)
+    idxm[i] += 1
+  end
+
+  for i=1:length(idxn)
+    idxn[i] += 1
+  end
+
+  return err
+end
+
+"""
+  Method for `AbstractMatrix`
+"""
+function get_values1!(mat::AbstractMatrix, idxm::Array{PetscInt},
+                      idxn::Array{PetscInt}, vals::Array)
+
+  for i=1:length(idxn)
+    for j=1:length(idxm)
+      vals[j, i] = mat[idxm[j], idxn[i]]
+    end
+  end
+
+  return PetscErrorCode(0)
+end
+
+"""
+  Begin matrix assembly for `PetscMat`.  No-op for Julia matrices
+
+  **Inputs**
+
+   * mat: AbstractMatrix
+   * flag: type of matrix assembly (see [`MatAssemblyBegin`](@ref)
+"""
 function assembly_begin(mat::PetscMat, flg::Integer)
   MatAssemblyBegin(mat, flg)
 end
@@ -199,6 +240,14 @@ end
 function assembly_begin(mat::AbstractMatrix, flg::Integer)
 end
 
+"""
+  Counterpart of [`assembly_end`](@ref)
+
+  **Inputs**
+
+   * mat: AbstractMatrix
+   * flg: type of matrix assembly
+"""
 function assembly_end(mat::PetscMat, flg::Integer)
   MatAssemblyEnd(mat, flg)
 end
@@ -223,7 +272,11 @@ function PetscView(A::AbstractMatrix, f::IO=STDOUT)
 end
 
 """
-  size of local part of matrix
+  Size of local part of matrix
+
+  **Inputs**
+
+   * A: AbstractMatrix
 """
 function size_local(A::PetscMat)
   return MatGetLocalSize(A)
@@ -235,6 +288,10 @@ end
 
 """
   Global size of matrix, same as size_local() for serial matrices
+
+  **Inputs**
+
+   * A: AbstractMatrix
 """
 function size_global(A::PetscMat)
   return MatGetSize(A)
@@ -265,9 +322,12 @@ function local_indices(A::AbstractMatrix)
 end
 
 """
-  Fill the matrix with zeros.  The sparsity pattern of the matrix (if applicable)
+  Fill the matrix with zeros. The sparsity pattern of the matrix (if applicable)
   should be defined before this function is called
 
+  **Inputs**
+
+   * A: AbstractMatrix
 """
 function fill_zero!(A::PetscMat)
   MatZeroEntries(A)
