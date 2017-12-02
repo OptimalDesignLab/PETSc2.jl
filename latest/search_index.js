@@ -565,7 +565,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Vec Interface",
     "title": "PETSc.set_values1!",
     "category": "Function",
-    "text": "Method for AbstractVector\n\n\n\n"
+    "text": "1-based indexing for both regular vectors and Petsc vector\n\nInputs\n\nvals: values to add/insert into the vector, must be length(idx)\nflag: PETSC_INSERT_VALUES or PETSC_ADD_VALUES\n\nInputs/Outputs\n\nvec: the vector, can be a Petsc vector or a julia vector\nidx: (global) indices to add/insert vals into      idx is listed as input/output because it may be modified during the function.   It will be returned to its original values when the function exits.   This is necessary to accomodate Petscs zero-based indexing interface\n\n\n\n"
 },
 
 {
@@ -573,7 +573,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Vec Interface",
     "title": "PETSc.set_values1!",
     "category": "Function",
-    "text": "1-based indexing for both regular vectors and Petsc vector\n\nInputs\n\nvals: values to add/insert into the vector, must be length(idx)\nflag: PETSC_INSERT_VALUES or PETSC_ADD_VALUES\n\nInputs/Outputs\n\nvec: the vector, can be a Petsc vector or a julia vector\nidx: (global) indices to add/insert vals into      idx is listed as input/output because it may be modified during the function.   It will be returned to its original values when the function exits.   This is necessary to accomodate Petscs zero-based indexing interface\n\n\n\n"
+    "text": "Method for AbstractVector\n\n\n\n"
 },
 
 {
