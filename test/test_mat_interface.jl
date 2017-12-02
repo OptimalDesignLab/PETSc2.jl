@@ -11,7 +11,7 @@ function test_mat_interface()
     idy = copy(idx)
     A_j = zeros(3,3)
     A_s = sparse(A_j)
-    A_p = PetscMat(3, 3, PETSc.MATMPIAIJ, MPI.COMM_WORLD)
+    A_p = PetscMat(3, 3, PETSc2.MATMPIAIJ, MPI.COMM_WORLD)
     SetUp(A_p)
 
     test_setvalues1(A_j, idx, idy, vals)

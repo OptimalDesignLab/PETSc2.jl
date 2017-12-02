@@ -51,9 +51,9 @@ function test_ksp()
     println("   \n---Testing PC Options ---")
     pc = KSPGetPC(ksp)
 
-    PCSetType(pc, PETSc.PCBJACOBI)
+    PCSetType(pc, PETSc2.PCBJACOBI)
     pctype = PCGetType(pc)
-    @fact pctype => PETSc.PCBJACOBI
+    @fact pctype => PETSc2.PCBJACOBI
     #PCFactorSetUseInPlace(pc, PetscBool(true))
 
     ### Do some KSP setup
@@ -61,7 +61,7 @@ function test_ksp()
     SetFromOptions(ksp)
     SetTolerances(ksp, rtol, abstol, dtol, maxits)
     SetInitialGuessNonzero(ksp, PetscBool(true))
-    SetType(ksp, PETSc.KSPLGMRES)
+    SetType(ksp, PETSc2.KSPLGMRES)
     SetUp(ksp)
 
     ### More PC testing
@@ -85,8 +85,8 @@ function test_ksp()
     PCFactorSetFill(pc, PetscReal(7.0))
 
     #=
-    PCJacobiSetType(pc, PETSc.PC_JACOBI_ROWMAX)
-    @fact PCJacobiGetType(pc) => PETSc.PC_JACOBI_ROWMAX
+    PCJacobiSetType(pc, PETSc2.PC_JACOBI_ROWMAX)
+    @fact PCJacobiGetType(pc) => PETSc2.PC_JACOBI_ROWMAX
     =#
 
 
@@ -104,7 +104,7 @@ function test_ksp()
     reason = GetConvergedReason(ksp)
     ksptype = GetType(ksp)
 
-    @fact ksptype => PETSc.KSPLGMRES
+    @fact ksptype => PETSc2.KSPLGMRES
 
 
     rtol_ret, abstol_ret, dtol_ret, maxits_ret = GetTolerances(ksp)

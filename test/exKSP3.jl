@@ -1,4 +1,4 @@
-using PETSc
+using PETSc2
 
 import MPI
 MPI.Init()

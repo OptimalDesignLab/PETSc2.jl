@@ -1,12 +1,14 @@
 
-using PETSc
+using PETSc2
 using FactCheck
 
 
 import MPI
 println("pwd = ", pwd())
 println("PETSC_DIR = ", ENV["PETSC_DIR"])
-MPI.Init()
+if !MPI.Initialized()
+  MPI.Init()
+end
 
 comm = MPI.COMM_WORLD
 comm_size = MPI.Comm_size(MPI.COMM_WORLD)

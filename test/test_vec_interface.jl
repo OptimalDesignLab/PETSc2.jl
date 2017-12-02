@@ -23,7 +23,7 @@ function test_vec_interface()
     get_values1!(x_j, idx, vals2)
     @fact norm(vals2 - 2*vals) --> roughly(0.0)
 
-    x_p = PetscVec(3, PETSc.VECMPI, MPI.COMM_WORLD)
+    x_p = PetscVec(3, PETSc2.VECMPI, MPI.COMM_WORLD)
     set_values1!(x_p, idx, vals)
     assembly_begin(x_p)
     assembly_end(x_p)

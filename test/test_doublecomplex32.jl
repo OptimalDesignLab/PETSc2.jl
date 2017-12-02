@@ -1,5 +1,5 @@
 using FactCheck
-using PETSc
+using PETSc2
 
 facts("  ---Checking Petsc data types---") do
 

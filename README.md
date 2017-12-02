@@ -89,4 +89,6 @@ This package requires MPI.jl, although it is not listed in the REQUIRE file beca
 
 Currently, only MPI implimentations where the Fortran communicator is the same as the C communictor are supported.  This is due to the current implimentation of the MPI.jl package.  MPICH is one MPI implimentation that satisfies this requirement.  Note that OPENMPI does not. 
 
-[![Build Status](https://travis-ci.org/JaredCrean2/Petsc.svg?branch=master)](https://travis-ci.org/JaredCrean2/Petsc)
+[![Build Status](https://travis-ci.org/OptimalDesignLab/PETSc2.svg?branch=master)](https://travis-ci.org/OptimalDesignLab/PETSc2)
+
+[![](https://img.shields.io/badge/docs-latest-blue.svg)](https://OptimalDesignLab.github.io/PETSc2.jl/latest)

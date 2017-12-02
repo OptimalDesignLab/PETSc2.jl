@@ -10,7 +10,7 @@ function make_vec(format_j)
     vals[i] = rhs[i]
   end
   set_values1!(b, idxm, vals)
-  PETSc.VecAssemble(b)
+  PETSc2.VecAssemble(b)
 
   return b
 end
@@ -31,7 +31,7 @@ function test_indexing(format_j)
     vals[i] = i
   end
   set_values1!(b, idxm, vals)
-  PETSc.VecAssemble(b)
+  PETSc2.VecAssemble(b)
   =#
   vals2 = zeros(rhs)
 
@@ -70,7 +70,7 @@ function test_indexing(format_j)
     VecSetValues(b, idxm, val, PETSC_INSERT_VALUES)
   end
 
-  PETSc.VecAssemble(b)
+  PETSc2.VecAssemble(b)
 
   PetscDestroy(b)
   return nothing

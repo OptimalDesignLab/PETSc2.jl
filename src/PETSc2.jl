@@ -1,12 +1,8 @@
 #
 #   Allows the PETSc dynamic library to be used from Julia. (http::/julialang.org)
 #     PETSc must be configured with --with-shared-libraries
-#     You can build with or without MPI, but cannot run on more than one process
-#
-#  Load the PETSc dynamic library
-#
 
-module PETSc
+module PETSc2
 
 
 using MPI

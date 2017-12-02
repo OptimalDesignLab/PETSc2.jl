@@ -1,4 +1,4 @@
-include("PETSc.jl")
+include("PETSc2.jl")
 
 import MPI
 MPI.Init()

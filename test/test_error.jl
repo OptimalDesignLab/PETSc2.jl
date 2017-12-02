@@ -1,4 +1,4 @@
-using MPI, PETSc
+using MPI, PETSc2
 
   PetscInitialize()
   b = PetscVec(10, VECMPI, MPI.COMM_WORLD)
