@@ -95,8 +95,8 @@ function test_copy(format_j)
 #    idx[i] = global_indices[i]
 #  end
 
-  b_arr, ptr_arr = VecGetArray(b)
-  b_arr_ro, ptr_arr2 = VecGetArrayRead(b)
+  b_arr = VecGetArray(b)
+  b_arr_ro = VecGetArrayRead(b)
   b2 = VecDuplicate(b)
   VecCopy(b, b2)
   
@@ -109,8 +109,8 @@ function test_copy(format_j)
      @fact b2_copy[i] => roughly(rhs[i])
   end
 
-  VecRestoreArray(b, ptr_arr)
-  VecRestoreArrayRead(b, ptr_arr2)
+  VecRestoreArray(b, b_arr)
+  VecRestoreArrayRead(b, b_arr_ro)
 
  
   @fact VecGetSize(b) => comm_size*sys_size_local

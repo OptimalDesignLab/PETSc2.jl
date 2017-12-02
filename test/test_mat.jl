@@ -271,12 +271,12 @@ facts("----- Testing Matrix BLAS -----") do
   fac = 2.0
   C_julia = rand(3,3)
   C_julia2 = fac*C_julia
-  MatScale(C_julia, 2.0)
+  scale!(C_julia, 2.0)
   @fact C_julia => roughly(C_julia2)
 
   C_julia = sprand(10, 10, 0.1)
   C_julia2 = fac*C_julia
-  MatScale(C_julia, fac)
+  scale!(C_julia, fac)
   @fact C_julia => roughly(C_julia2)
 
   MatShift(B, alpha)
@@ -418,14 +418,6 @@ facts("----- Testing Matrix Preallocation -----") do
   MatZeroEntries(C)
   cnorm = MatNorm(C, NORM_FROBENIUS)
   @fact cnorm => roughly(0.0, atol=1e-3)  # norm is zero iff matrix is zero
-
-  a = rand(3,3)
-  MatZeroEntries(a)
-  @fact norm(a) => 0.0
-
-  a = sprand(10, 10, 0.1)
-  MatZeroEntries(a)
-  @fact sum(a.nzval) => 0.0
 
   @fact PetscDestroy(C) => 0
 
