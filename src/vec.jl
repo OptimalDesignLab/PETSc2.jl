@@ -3,10 +3,21 @@ export PetscVec, VecSetType, VecSetValues, VecAssemblyBegin, VecAssemblyEnd, Vec
 export getLocalIndices
 
 """
-Petsc Vector type
+Petsc Vector type.
+
+Not a subtype of `AbstractArray` because Petsc vectors do not conform to that
+API.
 """
 type PetscVec
   pobj::Ptr{Void}
+
+  """
+    Constructor
+
+    **Inputs**
+
+     * comm: MPI Communicator
+  """
   function PetscVec(comm::MPI_Comm)
 #    comm = PETSC_COMM_SELF();
     vec = Array(Ptr{Void},1)
@@ -18,111 +29,182 @@ type PetscVec
 
   end
 
+  """
+    Constructor from existing pointer to a Petsc Vec
+
+    **Inputs**
+
+     pobj: a Ptr{Void} to an existing Petsc object
+  """
   function PetscVec(pobj::Ptr{Void})  # default constructor
     return new(pobj)
   end
  
 end
 
+"""
+Union{AbstractVector, PetscVec}
+"""
 typealias AllVectors Union{AbstractVector, PetscVec}
 
-  function PetscDestroy(vec::PetscVec)
-    if (vec.pobj != 0)
-      err = ccall(( :VecDestroy, libpetsclocation), PetscErrorCode, (Ptr{Ptr{Void}},), &vec.pobj);
-    end
-    vec.pobj = 0  # unnecessary? vec no longer has any references to it
+"""
+  Free a Petsc vec.  Safe to call multiple times
+"""
+function PetscDestroy(vec::PetscVec)
+  if (vec.pobj != 0)
+    err = ccall(( :VecDestroy, libpetsclocation), PetscErrorCode, (Ptr{Ptr{Void}},), &vec.pobj);
+  end
+  vec.pobj = 0  # unnecessary? vec no longer has any references to it
 #    println("VecDestroy called")
-  end
+end
 
-  function VecSetType(vec::PetscVec,name)
-    err = ccall((:VecSetType,  libpetsclocation), PetscErrorCode, (Ptr{Void}, Cstring), vec.pobj,name);
-  end
+"""
+  VecSetType
+"""
+function VecSetType(vec::PetscVec,name)
+  err = ccall((:VecSetType,  libpetsclocation), PetscErrorCode, (Ptr{Void}, Cstring), vec.pobj,name);
+end
 
   #TODO: make this better: use VecFromArray
-  function PetscVec(array::Array{PetscScalar})
-    vec = PetscVec()
-    err = ccall(( :VecSetType,  libpetsclocation), PetscErrorCode,(Ptr{Void},Cstring), vec.pobj,"seq");
-    err = ccall( (:VecSetSizes,  libpetsclocation), PetscErrorCode, (Ptr{Void}, PetscInt, PetscInt), vec.pobj,length(array),length(array));
-    # want a PetscInt array so build it ourselves
-    idx = Array(PetscInt, length(array));
-    for i=1:length(array);  idx[i] = i-1;  end
-    err = ccall( ( :VecSetValues,  libpetsclocation), PetscErrorCode,(Ptr{Void},PetscInt, Ptr{PetscInt},Ptr{PetscScalar},Int32), vec.pobj,length(idx),idx,array,PETSC_INSERT_VALUES);
-    err = ccall( ( :VecAssemblyBegin,  libpetsclocation), PetscErrorCode,(Ptr{Void},), vec.pobj);
-    err = ccall( ( :VecAssemblyEnd,  libpetsclocation), PetscErrorCode, (Ptr{Void},), vec.pobj);
-    return vec
-  end
+function PetscVec(array::Array{PetscScalar})
+  vec = PetscVec()
+  err = ccall(( :VecSetType,  libpetsclocation), PetscErrorCode,(Ptr{Void},Cstring), vec.pobj,"seq");
+  err = ccall( (:VecSetSizes,  libpetsclocation), PetscErrorCode, (Ptr{Void}, PetscInt, PetscInt), vec.pobj,length(array),length(array));
+  # want a PetscInt array so build it ourselves
+  idx = Array(PetscInt, length(array));
+  for i=1:length(array);  idx[i] = i-1;  end
+  err = ccall( ( :VecSetValues,  libpetsclocation), PetscErrorCode,(Ptr{Void},PetscInt, Ptr{PetscInt},Ptr{PetscScalar},Int32), vec.pobj,length(idx),idx,array,PETSC_INSERT_VALUES);
+  err = ccall( ( :VecAssemblyBegin,  libpetsclocation), PetscErrorCode,(Ptr{Void},), vec.pobj);
+  err = ccall( ( :VecAssemblyEnd,  libpetsclocation), PetscErrorCode, (Ptr{Void},), vec.pobj);
+  return vec
+end
 
-  function VecSetValues(vec::PetscVec,idx::Array{PetscInt},array::Array{PetscScalar},flag::Integer)
+"""
+   VecSetValues
+"""
+function VecSetValues(vec::PetscVec,idx::Array{PetscInt},array::Array{PetscScalar},flag::Integer)
 
-    err = ccall( ( :VecSetValues,  libpetsclocation), PetscErrorCode, 
-                 (Ptr{Void},PetscInt ,Ptr{PetscInt},Ptr{PetscScalar},Int32), 
-                 vec.pobj,length(idx), idx,array,flag);
-    return err
-  end
+  err = ccall( ( :VecSetValues,  libpetsclocation), PetscErrorCode, 
+               (Ptr{Void},PetscInt ,Ptr{PetscInt},Ptr{PetscScalar},Int32), 
+               vec.pobj,length(idx), idx,array,flag);
+  return err
+end
 
-  function VecSetValues(vec::PetscVec,idx::Array{PetscInt},array::Array{PetscScalar})
-    VecSetValues(vec,idx,array,PETSC_INSERT_VALUES)
-  end
+"""
+  VecSetValues method that implicitly uses `PETSC_INSERT_VALUES`
+"""
+function VecSetValues(vec::PetscVec,idx::Array{PetscInt},array::Array{PetscScalar})
+  VecSetValues(vec,idx,array,PETSC_INSERT_VALUES)
+end
 
-  function VecSetValues(vec::PetscVec,array::Array{PetscScalar})
-    idx = Array(PetscInt,length(array))
-    for i=1:length(array);  idx[i] = i-1;  end
-    VecSetValues(vec,idx,array,PETSC_INSERT_VALUES)
-  end
+#=
+function VecSetValues(vec::PetscVec,array::Array{PetscScalar})
+  idx = Array(PetscInt,length(array))
+  for i=1:length(array);  idx[i] = i-1;  end
+  VecSetValues(vec,idx,array,PETSC_INSERT_VALUES)
+end
+=#
 
+"""
+  VecAssemblyBegin
+"""
+function VecAssemblyBegin(obj::PetscVec)
+  err = ccall( ( :VecAssemblyBegin,  libpetsclocation), PetscErrorCode, (Ptr{Void},), obj.pobj);
+end
 
+"""
+  VecAssemblyEnd
+"""
+function VecAssemblyEnd(obj::PetscVec)
+  err = ccall( ( :VecAssemblyEnd,  libpetsclocation), PetscErrorCode,(Ptr{Void},), obj.pobj);
+end
 
-  function VecAssemblyBegin(obj::PetscVec)
-    err = ccall( ( :VecAssemblyBegin,  libpetsclocation), PetscErrorCode, (Ptr{Void},), obj.pobj);
-  end
+"""
+  Convenience function for calling VecAssemblyBegin, and VecAssemblyEnd, in
+  one go.
+"""
+function VecAssemble(obj::PetscVec)
+  VecAssemblyBegin(obj)
+  VecAssemblyEnd(obj)
+end
 
-  function VecAssemblyEnd(obj::PetscVec)
-    err = ccall( ( :VecAssemblyEnd,  libpetsclocation), PetscErrorCode,(Ptr{Void},), obj.pobj);
-  end
+"""
+  VecSetSizes
+"""
+function VecSetSizes(vec::PetscVec,n::Integer, N::Integer)
+  err = ccall( ( :VecSetSizes,  libpetsclocation), PetscErrorCode, (Ptr{Void}, PetscInt, PetscInt), vec.pobj,n,N);
+end
 
-  """
-    Convenience function for calling VecAssemblyBegin, and VecAssemblyEnd, in
-    one go.
-  """
-  function VecAssemble(obj::PetscVec)
-    VecAssemblyBegin(obj)
-    VecAssemblyEnd(obj)
-  end
+"""
+  PetscView for Petsc vector
+"""
+function PetscView(obj::PetscVec,viewer)
+  err = ccall( ( :VecView,  libpetsclocation), PetscErrorCode, (Ptr{Void},Int64),obj.pobj,0);
+end
 
-  function VecSetSizes(vec::PetscVec,n::Integer, N::Integer)
-    err = ccall( ( :VecSetSizes,  libpetsclocation), PetscErrorCode, (Ptr{Void}, PetscInt, PetscInt), vec.pobj,n,N);
-  end
+"""
+  VeGetSize
 
-  function PetscView(obj::PetscVec,viewer)
-    err = ccall( ( :VecView,  libpetsclocation), PetscErrorCode, (Ptr{Void},Int64),obj.pobj,0);
-  end
+  **Inputs**
 
-  function VecGetSize(obj::PetscVec)
-    n = Array(PetscInt, 1)
-    err = ccall( ( :VecGetSize,  libpetsclocation), PetscErrorCode, (Ptr{Void},Ptr{PetscInt}), obj.pobj,n);
-    return n[1]
-  end
+   * vec: a Petsc vector
 
-  function VecGetLocalSize(arg1::PetscVec)
-    arg2 = Ref{PetscInt}()
-    ccall((:VecGetLocalSize,petsc),PetscErrorCode,(Ptr{Void},Ptr{PetscInt}),arg1.pobj,arg2)
-    return arg2[]
+  **Outputs**
+
+   * the size
+"""
+function VecGetSize(obj::PetscVec)
+  n = Array(PetscInt, 1)
+  err = ccall( ( :VecGetSize,  libpetsclocation), PetscErrorCode, (Ptr{Void},Ptr{PetscInt}), obj.pobj,n);
+  return n[1]
+end
+
+"""
+  VecGetLocalSize
+
+  **Inputs**
+
+   * vec: a Petsc vector
+
+  **Outputs**
+
+   * the size
+
+"""
+function VecGetLocalSize(arg1::PetscVec)
+  arg2 = Ref{PetscInt}()
+  ccall((:VecGetLocalSize,petsc),PetscErrorCode,(Ptr{Void},Ptr{PetscInt}),arg1.pobj,arg2)
+  return arg2[]
 end
 
 
 
-  #TODO: VecGetLocalSize
+"""
+  VecNorm
 
-  function VecNorm(obj::PetscVec,normtype::Integer)
-    n = Array(PetscReal,1)
-    err = ccall( ( :VecNorm,  libpetsclocation), PetscScalar, (Ptr{Void},Int32,Ptr{PetscReal}), obj.pobj,normtype, n);
-    return n[1]
-  end
+  **Inputs**
 
-  function VecNorm(obj::PetscVec)
-    return VecNorm(obj,PETSC_NORM_2)
-  end
+   * obj: Petsc vector
+   * normtype: the Petsc enum for the norm type
 
+  **Output**
+
+   * the norm value
+"""
+function VecNorm(obj::PetscVec,normtype::Integer)
+  n = Array(PetscReal,1)
+  err = ccall( ( :VecNorm,  libpetsclocation), PetscScalar, (Ptr{Void},Int32,Ptr{PetscReal}), obj.pobj,normtype, n);
+  return n[1]
+end
+
+#=
+function VecNorm(obj::PetscVec)
+  return VecNorm(obj,PETSC_NORM_2)
+end
+=#
+"""
+  VecGetValues
+"""
 function VecGetValues(vec::PetscVec, ni::Integer, ix::AbstractArray{PetscInt,1}, y::AbstractArray{PetscScalar,1})
 
      # need indices to be PetscInt
@@ -136,11 +218,32 @@ function VecGetValues(vec::PetscVec, ni::Integer, ix::AbstractArray{PetscInt,1},
     return nothing
 end
 
+"""
+  VecGetValues with length of idx inferred from idx
+
+  **Inputs**
+
+   * vec: the Petsc vector
+   * idx: array of PetscInt indices
+   * y: array of PetscScalar values
+"""
 function VecGetValues(vec::PetscVec,idx::AbstractArray{PetscInt,1}, y::AbstractArray{PetscScalar, 1})
 
   VecGetValues(vec, length(idx), idx, y)
 end
 
+"""
+  VecGetOwnershipRange
+
+  **Inputs**
+
+   * vec: Petsc vector
+
+  **Outputs**
+
+   * low: lowest index (zero-based) that is owned
+   * high: highest index + 1 that is owned
+"""
 function VecGetOwnershipRange(vec::PetscVec)
     low = Array(PetscInt, 1)
     high = Array(PetscInt, 1)
@@ -152,7 +255,17 @@ end
 
 
 # new functions
+"""
+  VecGetArray.  Users must call `VecRestoreArray` when finished.
 
+  **Inputs**
+
+   * vec: the Petsc vector
+
+  **Outputs**
+
+   * arr: a Julia Array{PetscScalar, 1}
+"""
 function VecGetArray(vec::PetscVec)
 # gets a pointer to the data underlying a Petsc vec, turns it into a Julia
 # array
@@ -167,7 +280,14 @@ function VecGetArray(vec::PetscVec)
     return arr, ptr_arr
 end
 
+"""
+  VecRestoreArray.  Users must not access the array after calling this function.
 
+  **Inputs**
+
+   * vec: the PetscVector passed into `VecGetArray`
+   * arr: the array returned by `VecGetArray
+"""
 function VecRestoreArray(vec::PetscVec, ptr_arr::Array{Ptr{PetscScalar}, 1})
     ccall((:VecRestoreArray,petsc),PetscErrorCode,(Ptr{Void}, Ptr{Ptr{PetscScalar}}),vec.pobj, ptr_arr)
 end
