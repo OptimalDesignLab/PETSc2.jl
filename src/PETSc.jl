@@ -22,6 +22,7 @@ export PetscInitialize, PetscInitialized, getPETSC_COMM_SELF, PetscView, IS, Pet
 
 
 # -------------------------------------
+#=
 function echodemo(filename)
   f = open(filename)
   h = readall(f)
@@ -43,7 +44,7 @@ function echodemo(filename)
     println(" ")
   end
 end
-
+=#
 # -------------------------------------
 
 
@@ -64,6 +65,14 @@ PETSC_NORM_MAX       = PETSC_NORM_INFINITY;
 #    underlying PETSc object.
 #
 # -------------------------------------
+
+"""
+  PetscInitialized
+
+  **Outputs**
+
+   * PetscBool
+"""
 function PetscInitialized()
   init = Array(PetscBool, 1);
   err = ccall( (:PetscInitialized,  libpetsclocation),Int32,(Ptr{PetscBool},), init);
@@ -71,6 +80,9 @@ function PetscInitialized()
   return init[1]
 end
 
+"""
+  PetscFinalize
+"""
 function PetscFinalize()
   gc() # call garbage collection to force all PETSc objects be destroy that are queued up for destruction
   return ccall( (:PetscFinalize,  libpetsclocation),Int32,());
@@ -78,11 +90,20 @@ end
 
 
  
-
+"""
+  PetscInitialize
+"""
 function PetscInitialize()
   PetscInitialize([])
 end
 
+"""
+  PetscInitialize
+
+  **Inputs**
+
+   * args: Array{ASCIIString, 1} containing Petsc options keys and values
+"""
 function PetscInitialize(args)
   PetscInitialize(args,"","")
 end
@@ -90,7 +111,7 @@ end
 function PetscInitialize(args,filename,help)
   # argument list starts with program name
   args = ["julia";args];
-  println("typeof(args) = ", typeof(args))
+#  println("typeof(args) = ", typeof(args))
   #
   #   If the user forgot to PetscFinalize() we do it for them, before restarting PETSc
   #

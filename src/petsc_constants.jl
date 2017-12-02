@@ -53,6 +53,12 @@ end
 global const PETSC_DIR = ENV["PETSC_DIR"]
 global const PETSC_ARCH = ENV["PETSC_ARCH"]
 
+if !MPI.Initialized()
+  MPI.Init()
+  atexit( () -> MPI.Finalize())
+end
+  
+myrank = MPI.Comm_rank(MPI.COMM_WORLD)
 
 #PETSC_DIR = readall(`echo $PETSC_DIR`)
 #PETSC_ARCH = readall(`echo $PETSC_ARCH`)
@@ -150,8 +156,11 @@ if real_type_enum == PETSC_DOUBLE
 elseif real_type_enum == PETSC_FLOAT
   precision = "single"
 else
-  println("unknown type of Real")
-  println("real_type_enum = ", real_type_enum)
+  if myrank == 0
+    println("unknown type of Real")
+    println("real_type_enum = ", real_type_enum)
+  end
+  throw(ErrorException("unsupported PetscReal ty pe"))
 end
 
 
@@ -160,8 +169,11 @@ if scalar_type_enum == real_type_enum
 elseif scalar_type_enum == PETSC_COMPLEX
   scalar_type = "complex"
 else
-  println("unknown type of Scalar")
-  println("scalar_type_enum = ", scalar_type_enum)
+  if myrank == 0
+    println("unknown type of Scalar")
+    println("scalar_type_enum = ", scalar_type_enum)
+  end
+  throw(ErrorException("unsupported PetscScalar type"))
 end
 
 # figure out types
@@ -192,14 +204,29 @@ elseif int_size == 8
 else
   println("unknown Int size")
   println("int_size = ", int_size)
+  throw(ErrorException("unsupported integer size"))
 end
 
-println("PetscScalar type = ", scalar_dtype)
-println("PetscReal type = ", real_dtype)
-println("PetscInt type = ", int_dtype)
 
+if myrank == 0
+  println("PetscScalar type = ", scalar_dtype)
+  println("PetscReal type = ", real_dtype)
+  println("PetscInt type = ", int_dtype)
+end
+
+"""
+  Element type of Petsc vectors and matrices
+"""
 typealias PetscScalar scalar_dtype
+
+"""
+  The closest real type to `PetscScalar`
+"""
 typealias PetscReal real_dtype
+
+"""
+  Petsc integer type
+"""
 typealias PetscInt int_dtype
 
 
