@@ -54,45 +54,48 @@ echo $sum
 
 
 # 32 bit intger, single precision real
-cd $build_dir
-./install_petsc.sh --with-precision=single
-cd $test_dir
-
-echo "--- testing 32 bit integer, single precision, real---"
-julia --check-bounds=yes ./test/test_singlereal32.jl
-sum=$(expr $sum + $?)
-echo $sum
+if [[ $CI != "true" ]]; then
+  echo "--- testing 32 bit, single precision, real ---"
+  cd $build_dir
+  ./install_petsc.sh --with-precision=single
+  cd $test_dir
 
 
-julia --check-bounds=yes ./test/runtests.jl
-sum=$(expr $sum + $?)
-echo $sum
+  julia --check-bounds=yes ./test/test_singlereal32.jl
+  sum=$(expr $sum + $?)
+  echo $sum
 
-mpirun -np 4 julia --check-bounds=yes ./test/runtests.jl
-sum=$(expr $sum + $?)
-echo $sum
 
+  julia --check-bounds=yes ./test/runtests.jl
+  sum=$(expr $sum + $?)
+  echo $sum
+
+  mpirun -np 4 julia --check-bounds=yes ./test/runtests.jl
+  sum=$(expr $sum + $?)
+  echo $sum
+fi
 
 
 # 64 bit intger, single precision real
-cd $build_dir
-./install_petsc.sh --with-precision=single  --with-64-bit-indices
-cd $test_dir
+if [[ $CI != "true" ]]; then
+  cd $build_dir
+  ./install_petsc.sh --with-precision=single  --with-64-bit-indices
+  cd $test_dir
 
-echo "--- testing 64 bit integer, single precision, real---"
-julia --check-bounds=yes ./test/test_singlereal64.jl
-sum=$(expr $sum + $?)
-echo $sum
+  echo "--- testing 64 bit integer, single precision, real---"
+  julia --check-bounds=yes ./test/test_singlereal64.jl
+  sum=$(expr $sum + $?)
+  echo $sum
 
 
-julia --check-bounds=yes ./test/runtests.jl
-sum=$(expr $sum + $?)
-echo $sum
+  julia --check-bounds=yes ./test/runtests.jl
+  sum=$(expr $sum + $?)
+  echo $sum
 
-mpirun -np 4 julia --check-bounds=yes ./test/runtests.jl
-sum=$(expr $sum + $?)
-echo $sum
-
+  mpirun -np 4 julia --check-bounds=yes ./test/runtests.jl
+  sum=$(expr $sum + $?)
+  echo $sum
+fi
 
 
 # 32 bit intger, double precision complex
@@ -117,24 +120,25 @@ echo $sum
 
 
 # 64 bit intger, double precision complex
-cd $build_dir
-./install_petsc.sh --with-scalar-type=complex --with-64-bit-indices
-cd $test_dir
+if [[ $CI != "true" ]]; then
+  cd $build_dir
+  ./install_petsc.sh --with-scalar-type=complex --with-64-bit-indices
+  cd $test_dir
 
-echo "--- testing 64 bit integer, double precision, complex---"
-julia --check-bounds=yes ./test/test_doublecomplex64.jl
-sum=$(expr $sum + $?)
-echo $sum
+  echo "--- testing 64 bit integer, double precision, complex---"
+  julia --check-bounds=yes ./test/test_doublecomplex64.jl
+  sum=$(expr $sum + $?)
+  echo $sum
 
 
-julia --check-bounds=yes ./test/runtests.jl
-sum=$(expr $sum + $?)
-echo $sum
+  julia --check-bounds=yes ./test/runtests.jl
+  sum=$(expr $sum + $?)
+  echo $sum
 
-mpirun -np 4 julia --check-bounds=yes ./test/runtests.jl
-sum=$(expr $sum + $?)
-echo $sum
-
+  mpirun -np 4 julia --check-bounds=yes ./test/runtests.jl
+  sum=$(expr $sum + $?)
+  echo $sum
+fi
 
 # Petsc does not support single precision complex
 ## 32 bit intger, single precision complex
