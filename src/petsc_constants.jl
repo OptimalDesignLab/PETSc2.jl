@@ -45,7 +45,6 @@ export VECPTHREAD
 if !haskey(ENV, "PETSC_DIR") && !haskey(ENV, "PETSC_ARCH")
   file_path = joinpath(Pkg.dir("PETSc2"), "deps/petsc_evars")
   args = open(readdlm, file_path)
-  println("args = ", args)
   ENV["PETSC_DIR"] = args[1]
   ENV["PETSC_ARCH"] = args[2]
 end

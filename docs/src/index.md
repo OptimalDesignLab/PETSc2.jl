@@ -1,4 +1,4 @@
-# PETSc.jl Documentation
+# PETSc2.jl Documentation
 
 This package provides an interface to the Portable, Extensible Toolkit for
 Scientific Computation ([PETSc](https://www.mcs.anl.gov/petsc/)).

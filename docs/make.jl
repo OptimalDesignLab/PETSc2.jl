@@ -2,7 +2,7 @@ using Documenter, PETSc
 
 makedocs(
   format = :html,
-  sitename = "Petsc.jl Documentation",
+  sitename = "Petsc2.jl",
   pages = [
     "index.md",
     "init.md",

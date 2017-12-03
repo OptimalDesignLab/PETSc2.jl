@@ -90,6 +90,14 @@ function KSPSolve(ksp::KSP, b::PetscVec, x::PetscVec)
 end
 
 """
+  KSPSolveTranspose
+"""
+function KSPSolveTranspose(ksp::KSP, b::PetscVec, x::PetscVec)
+    err = ccall((:KSPSolveTranspose,petsc),PetscErrorCode,(Ptr{Void},Ptr{Void},Ptr{Void}), ksp.pobj, b.pobj, x.pobj)
+end
+
+
+"""
   KSPSetUp
 """
 function SetUp(ksp::KSP)
@@ -142,7 +150,7 @@ end
 """
   KSPSetTolerances
 """
-function SetTolerances(ksp::KSP,rtol::PetscReal, abstol::PetscReal, dtol::PetscReal, maxits::PetscInt)
+function SetTolerances(ksp::KSP,rtol::Number, abstol::Number, dtol::Number, maxits::Integer)
 
     ccall((:KSPSetTolerances,petsc),PetscErrorCode,(Ptr{Void}, PetscReal, PetscReal, PetscReal, PetscInt), ksp.pobj, rtol, abstol, dtol, maxits)
 end
