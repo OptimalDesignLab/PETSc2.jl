@@ -18,6 +18,10 @@ install:
   - sudo ./deps/travis-install-mpi.sh mpich3
   - ls ./
   - ls ../
+  - julia -e 'Pkg.init()'
+  - cd ~/.julia/v0.4/
+  - julia -e 'Pkg.clone("https://github.com/OptimalDesignLab/PETSc2.jl.git")'
+  - cd ./PETSc2/
  
   
 # uncomment the following lines to override the default test script
