@@ -22,6 +22,11 @@ install:
   - cd ~/.julia/v0.4/
   - julia -e 'Pkg.clone("https://github.com/OptimalDesignLab/PETSc2.jl.git")'
   - cd ./PETSc2/
+  - export PETSC_DIR=""  # avoid building petsc here
+  - export PETSC_ARCH=""
+  - julia ./build.jl
+  - unset PETSC_DIR  # have the tests build PETSc
+  - unset PETSC_ARCH
  
   
 # uncomment the following lines to override the default test script
