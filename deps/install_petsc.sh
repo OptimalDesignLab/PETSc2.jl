@@ -86,6 +86,9 @@ echo "export PETSC_ARCH=$PETSC_ARCH" >> use_petsc.sh
 echo "$petsc_dir" > petsc_evars
 echo "$PETSC_ARCH" >> petsc_evars
 
-
+echo "pwd = "
+echo `pwd`
+echo "ls = "
+echo `ls
 
 
