@@ -43,7 +43,7 @@ export VECPTHREAD
 # if no PETSC_DIR or PETSC_ARCH defined, use the one (hopefully) built 
 # during package installation
 if !haskey(ENV, "PETSC_DIR") && !haskey(ENV, "PETSC_ARCH")
-  file_path = joinpath(Pkg.dir("PETSc"), "deps/petsc_evars")
+  file_path = joinpath(Pkg.dir("PETSc2"), "deps/petsc_evars")
   args = open(readdlm, file_path)
   println("args = ", args)
   ENV["PETSC_DIR"] = args[1]
