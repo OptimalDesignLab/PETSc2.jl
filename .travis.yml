@@ -18,7 +18,6 @@ install:
   - sudo ./deps/travis-install-mpi.sh mpich3
   - ls ./
   - ls ../
-  - ls ~/.julia/v0.4
  
   
 # uncomment the following lines to override the default test script
