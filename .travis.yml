@@ -22,11 +22,11 @@ install:
   
 # uncomment the following lines to override the default test script
 script:
-  - cd ./deps
-  - julia -e 'Pkg.init()'
-  - julia ./build.jl
-  - cd ..
+  #  - cd ./deps
+  #  - julia -e 'Pkg.init()'
+  #  - julia ./build.jl
+  #  - cd ..
   - echo $HOME
-  - ./test/runtests.sh
+  - ./test/runtests.sh  # this builds PETSc
 #  - julia --check-bounds=yes -e 'Pkg.clone(pwd()); Pkg.build("PETSc"); Pkg.test("PETSc"; coverage=true)'
 #  - julia --check-bounds=yes ./test/test_singlereal.jl
