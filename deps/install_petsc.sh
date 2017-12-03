@@ -89,6 +89,6 @@ echo "$PETSC_ARCH" >> petsc_evars
 echo "pwd = "
 echo `pwd`
 echo "ls = "
-echo `ls
+echo `ls`
 
 
