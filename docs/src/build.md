@@ -3,6 +3,7 @@
 Installing `PETSc2` required:
 
  * `MPI.jl`
+ * `ArrayViews.jl`
  * `FactCheck`
  * `PETSc` itself
 
@@ -15,6 +16,10 @@ an older version. Before you install `MPI.jl`, you must have an MPI
 implementation installed.  Some systems come with MPI pre-installed, others
 do not.  If you are unsure which MPI implementation to install, I recommend
 MPICH, which is available as a package for Debian-based system.
+
+`ArrayViews.jl` will also be installed if not present.
+The master version does not support Julia v0.4, so an older commit will be
+checked out.
 
 `FactCheck` will also be installed if not present.
 
