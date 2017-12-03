@@ -24,7 +24,7 @@ install:
   - cd ./PETSc2/
   - export PETSC_DIR=""  # avoid building petsc here
   - export PETSC_ARCH=""
-  - julia ./build.jl
+  - julia ./deps/build.jl
   - unset PETSC_DIR  # have the tests build PETSc
   - unset PETSC_ARCH
  
