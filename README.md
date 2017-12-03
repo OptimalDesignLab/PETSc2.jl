@@ -39,19 +39,6 @@ Even when running serially, the MPI.jl package must be installed.
   `/deps` : builds Petsc if needed.  See description below
   `/docs`: documentation (using Documenter.jl)
 
-## Building Petsc (or not)
-Upon installation of the package, the build script (`build.jl`) checks for the environmental variables `PETSC_DIR` and `PETSC_ARCH`.  If both are present, it does nothing, otherwise is downloads and builds Petsc using the script `install_petsc.sh`.  Note that the script assumes BLAS, LAPACK and MPI (currently only MPICH is supported) are already installed.  See `.travis.yml` to see the Ubuntu packages used for testing.  When complete, it generates two files, `use_petsc.sh` and `petsc_evars`, which contains the values of `PETSC_DIR` and `PETSC_ARCH` for the Petsc installation.
-
-  At runtime, the module checks for the presence of the environmental variables and uses them if found, otherwise it uses the values in `petsc_evars`.  This enables you to use different Petsc installations if you choose.  When the module is imported in the user code, it auto-detects the size of the Petsc integers, the precision of floats, and whether scalars are real or complex.
-
-
-## Installing MPI.jl
-This package requires MPI.jl, although it is not listed in the REQUIRE file
-because that would download the release version of MPI.jl, which does not work.
-Instead, you must use an older verion.  
-After you have an MPI implementation installed, Pkg.build("PETSc2") will
-install MPI.jl and then Petsc, according to the description above.
-If you wish to install MPI.jl manually, see `deps/build.jl`.
 
 [![Build Status](https://travis-ci.org/OptimalDesignLab/PETSc2.svg?branch=master)](https://travis-ci.org/OptimalDesignLab/PETSc2.jl)
 
