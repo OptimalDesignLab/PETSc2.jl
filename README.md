@@ -40,6 +40,5 @@ Even when running serially, the MPI.jl package must be installed.
   `/docs`: documentation (using Documenter.jl)
 
 
-[![Build Status](https://travis-ci.org/OptimalDesignLab/PETSc2.svg?branch=master)](https://travis-ci.org/OptimalDesignLab/PETSc2.jl)
-
+[![Build Status](https://travis-ci.org/OptimalDesignLab/PETSc2.jl.svg?branch=master)](https://travis-ci.org/OptimalDesignLab/PETSc2.jl)
 [![](https://img.shields.io/badge/docs-latest-blue.svg)](https://OptimalDesignLab.github.io/PETSc2.jl/latest)

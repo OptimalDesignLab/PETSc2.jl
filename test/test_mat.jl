@@ -194,13 +194,13 @@ end
       v = zeros(PetscScalar, 1,1)
       MatGetValues(A, idxm, idxn, v)
 #      println("i = ", i, " j = ", j, " v = ", v[1,1], " A[i,j] = ", A_julia[i,j])
-      @fact v[1,1] => roughly(A_julia[i,j]) "mismatch at i=$i, j=$j"
-      @fact A[i,j] => roughly(A_julia[i,j])
+      @fact v[1,1] --> roughly(A_julia[i,j]) "mismatch at i=$i, j=$j"
+      @fact A[i,j] --> roughly(A_julia[i,j])
     end
   end
 
   for i=1:sys_size_local*sys_size_local
-    A[i] => roughly(A_julia[i])
+    A[i] --> roughly(A_julia[i])
   end
 =#
 
@@ -228,15 +228,15 @@ facts("----- Testing Matrix BLAS -----") do
   low, high = VecGetOwnershipRange(x)
   global_indices = Array(low:PetscInt(high - 1))
 
-  @fact size(A) => (sys_size_local, sys_size_local)
-  @fact size(A, 1) => sys_size_local
-  @fact size(A, 2) => sys_size_local
+  @fact size(A) --> (sys_size_local, sys_size_local)
+  @fact size(A, 1) --> sys_size_local
+  @fact size(A, 2) --> sys_size_local
 
 
-  @fact MatGetSize(A) => (comm_size*sys_size_local, comm_size*sys_size_local)
-  @fact MatGetLocalSize(A) => (sys_size_local, sys_size_local)
+  @fact MatGetSize(A) --> (comm_size*sys_size_local, comm_size*sys_size_local)
+  @fact MatGetLocalSize(A) --> (sys_size_local, sys_size_local)
   # testing non zero exist code is all we can really do here
-  @fact PetscView(A) => 0
+  @fact PetscView(A) --> 0
 
   alpha = PetscScalar(2.3)
 
@@ -246,7 +246,7 @@ facts("----- Testing Matrix BLAS -----") do
   MatGetValues(B, global_indices, global_indices, B_copy)
   for i=1:sys_size_local
     for j=1:sys_size_local
-      @fact B_julia[j, i] => roughly(B_copy[i, j])
+      @fact B_julia[j, i] --> roughly(B_copy[i, j])
     end
   end
 
@@ -255,7 +255,7 @@ facts("----- Testing Matrix BLAS -----") do
   MatGetValues(B, global_indices, global_indices, B_copy)
   for i=1:sys_size_local
     for j=1:sys_size_local
-      @fact B_julia[j, i] => roughly(B_copy[i, j])
+      @fact B_julia[j, i] --> roughly(B_copy[i, j])
     end
   end
 
@@ -264,7 +264,7 @@ facts("----- Testing Matrix BLAS -----") do
   MatGetValues(B, global_indices, global_indices, B_copy)
   for i=1:sys_size_local
     for j=1:sys_size_local
-      @fact B_julia[j, i] => roughly(B_copy[i, j])
+      @fact B_julia[j, i] --> roughly(B_copy[i, j])
     end
   end
 
@@ -272,19 +272,19 @@ facts("----- Testing Matrix BLAS -----") do
   C_julia = rand(3,3)
   C_julia2 = fac*C_julia
   scale!(C_julia, 2.0)
-  @fact C_julia => roughly(C_julia2)
+  @fact C_julia --> roughly(C_julia2)
 
   C_julia = sprand(10, 10, 0.1)
   C_julia2 = fac*C_julia
   scale!(C_julia, fac)
-  @fact C_julia => roughly(C_julia2)
+  @fact C_julia --> roughly(C_julia2)
 
   MatShift(B, alpha)
   B_julia += alpha*eye(PetscScalar, sys_size_local)
   MatGetValues(B, global_indices, global_indices, B_copy)
   for i=1:sys_size_local
     for j=1:sys_size_local
-      @fact B_julia[j, i] => roughly(B_copy[i, j])
+      @fact B_julia[j, i] --> roughly(B_copy[i, j])
     end
   end
 
@@ -294,7 +294,7 @@ facts("----- Testing Matrix BLAS -----") do
 
   VecGetValues(y, sys_size_local, global_indices, y_copy)
   for i=1:sys_size_local
-      @fact y_julia[i] => roughly(y_copy[i])
+      @fact y_julia[i] --> roughly(y_copy[i])
   end
 
 
@@ -302,21 +302,21 @@ facts("----- Testing Matrix BLAS -----") do
   y_julia = y_julia + B_julia*xvec_julia
   VecGetValues(y, sys_size_local, global_indices, y_copy)
   for i=1:sys_size_local
-      @fact y_julia[i] => roughly(y_copy[i])
+      @fact y_julia[i] --> roughly(y_copy[i])
   end
 
   MatMultTranspose(A, x, y)
   y_julia = A_julia.'*xvec_julia
   VecGetValues(y, sys_size_local, global_indices, y_copy)
   for i=1:sys_size_local
-      @fact y_julia[i] => roughly(y_copy[i])
+      @fact y_julia[i] --> roughly(y_copy[i])
   end
 
   MatMultHermitianTranspose(A, x, y)
   y_julia = A_julia'*xvec_julia
   VecGetValues(y, sys_size_local, global_indices, y_copy)
   for i=1:sys_size_local
-      @fact y_julia[i] => roughly(y_copy[i])
+      @fact y_julia[i] --> roughly(y_copy[i])
   end
 
 
@@ -328,7 +328,7 @@ facts("----- Testing Matrix BLAS -----") do
 
   for i=1:sys_size_local
     for j=1:sys_size_local
-      @fact D_copy[j,i] => roughly(D_julia[i,j])
+      @fact D_copy[j,i] --> roughly(D_julia[i,j])
     end
   end
 
@@ -336,8 +336,8 @@ facts("----- Testing Matrix BLAS -----") do
   fnorm = MatNorm(D, NORM_FROBENIUS)
   infnorm = MatNorm(D, NORM_INFINITY)
   
-  @fact fnorm => roughly(sqrt(comm_size)*vecnorm(D_julia), atol=1e-2)
-  @fact infnorm => roughly(norm(D_julia, Inf))
+  @fact fnorm --> roughly(sqrt(comm_size)*vecnorm(D_julia), atol=1e-2)
+  @fact infnorm --> roughly(norm(D_julia, Inf))
 
   PetscDestroy(A)
   PetscDestroy(B)
@@ -409,7 +409,7 @@ facts("----- Testing Matrix Preallocation -----") do
 
   matinfo = MatGetInfo(C, MAT_LOCAL)
 
-  @fact matinfo.mallocs => roughly(0.0)
+  @fact matinfo.mallocs --> roughly(0.0)
 
 #  PetscView(C, 0)
 
@@ -417,9 +417,9 @@ facts("----- Testing Matrix Preallocation -----") do
 
   MatZeroEntries(C)
   cnorm = MatNorm(C, NORM_FROBENIUS)
-  @fact cnorm => roughly(0.0, atol=1e-3)  # norm is zero iff matrix is zero
+  @fact cnorm --> roughly(0.0, atol=1e-3)  # norm is zero iff matrix is zero
 
-  @fact PetscDestroy(C) => 0
+  @fact PetscDestroy(C) --> 0
 
 end
 return nothing
