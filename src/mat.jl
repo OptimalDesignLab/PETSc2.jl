@@ -1,4 +1,4 @@
-export PetscMat, MatSetType, SetUp, MatSetValues, MatAssemblyBegin, MatAssemblyEnd, MatSetSizes, MatGetSize, MatGetValues, MatGetOwnershipRange, MatXAIJSetPreallocation, MatMPIAIJSetPreallocation, MatSetFromOptions, MatGetInfo, MatMatMult, MatNorm, MatZeroEntries, MatSetValuesBlocked, MatSetOption, MatCreateShell, MatShellSetOperation, MatShellGetContext, MatGetType, MatCreateTranspose, MatTranspose
+export PetscMat, MatSetType, SetUp, MatSetValues, MatAssemblyBegin, MatAssemblyEnd, MatSetSizes, MatGetSize, MatGetValues, MatGetOwnershipRange, MatXAIJSetPreallocation, MatMPIAIJSetPreallocation, SetFromOptions, MatGetInfo, MatMatMult, MatNorm, MatZeroEntries, MatSetValuesBlocked, MatSetOption, MatCreateShell, MatShellSetOperation, MatShellGetContext, MatGetType, MatCreateTranspose, MatTranspose
 
 """
   PetscMat type.  Currently a subtype of `AbstractArray`, although that may
@@ -127,7 +127,7 @@ end
 """
   MatSetFromOptions
 """
-function MatSetFromOptions(mat::PetscMat)
+function SetFromOptions(mat::PetscMat)
   ccall((:MatSetFromOptions,petsc),PetscErrorCode,(Ptr{Void},), mat.pobj)
 
 end

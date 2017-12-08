@@ -7,7 +7,7 @@ export PCShellSetApply, PCShellSetApplyTranspose, PCShellSetSetUp,
 # developer PC interface
 export PCApply, PCSetUp, PCApplyTranspose, PCApplyTransposeExists
 
-
+export KSPSetPC, KSPGetPC
 
 # preconditioner contex
 # the KSP object creates the PC contex, so we don't provide a constructor
@@ -48,7 +48,7 @@ end
 """
   PCSetFromOptions
 """
-function PCSetFromOptions(arg1::PC)
+function SetFromOptions(arg1::PC)
     ccall((:PCSetFromOptions,petsc),PetscErrorCode,(Ptr{Void},),arg1.pobj)
 end
 

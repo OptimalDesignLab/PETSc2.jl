@@ -359,7 +359,7 @@ facts("----- Testing Matrix Preallocation -----") do
   nb = PetscInt(100)  # number of times/blocks to insert
   C = PetscMat(comm)
   MatSetType(C, "mpiaij")
-#  MatSetFromOptions(C)
+# SetFromOptions(C)
 
   MatSetSizes(C, nb*sys_size_local, nb*sys_size_local, PetscInt(nb*comm_size*sys_size_local),PetscInt(nb*comm_size*sys_size_local));
 
