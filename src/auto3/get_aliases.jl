@@ -98,9 +98,16 @@ function print_cbody(type_dict, name_dict, f::IO)
     println(f, "\n", indent, "// typealias $i")
     println(f, indent, "fprintf(f, \"typealias $i $(datatype)$(nl)\");")
 
+    # add quotes around strings
+    if datatype == "ASCIIString"
+      mark = "\\\""
+    else
+      mark = ""
+    end
+
     fmt = FORMAT_SPEC[datatype]
     for j in name_dict[i]
-      println(f, indent, "fprintf(f, \"global const $j = $datatype($fmt)$nl\", $j);")
+      println(f, indent, "fprintf(f, \"global const $j = $datatype( $mark$fmt$mark )$nl\", $j);")
     end  # end loop over enum names
     println(f, indent, "fprintf(f, \"\\n\");")
   end  # end loop over typealiases

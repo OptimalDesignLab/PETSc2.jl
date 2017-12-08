@@ -259,6 +259,14 @@ typealias MPI_Comm MPI.Comm  # use MPI package communicator type
 # 32 bits (MPICH), or possibly 64 bits
 typealias comm_type MPI.CComm
 
+export PetscMatStructure
+export DIFFERENT_NONZERO_PATTERN, SUBSET_NONZERO_PATTERN, SAME_NONZERO_PATTERN
+export MATSEQAIJ, MATMPIAIJ, MATMPIBAIJ
+export MAT_LOCAL, MAT_GLOBAL_MAX, MAT_GLOBAL_SUM
+export MAT_INITIAL_MATRIX, MAT_REUSE_MATRIX, MAT_IGNORE_MATRIX
+export KSPType
+export KSPConvergedReason
+
 # get the auto generated definitions
 include("petsc_constants_gen.jl")
 
