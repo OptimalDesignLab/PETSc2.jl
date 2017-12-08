@@ -28,7 +28,7 @@ PetscVecSetSizes(x,sys_size_local, comm_size*sys_size_local);
 rhs = zeros(sys_size_local)
 for i=1:sys_size_local
   idxm = [(comm_rank)*10 + i]  # index
-  PetscVecSetValues(b,idxm,[ convert(Float64,i)],PETSC_INSERT_VALUES);
+  PetscVecSetValues(b,idxm,[ convert(Float64,i)],INSERT_VALUES);
   rhs[i] = i
 end
 
@@ -60,13 +60,13 @@ for i=1:sys_size_local
   for j = 1:sys_size_local
     idxm = [(comm_rank)*sys_size_local + i]  # row index
     idxn = [(comm_rank)*sys_size_local + j]  # column index
-    PetscMatSetValues(A,idxm, idxn, [A_julia[i,j]],PETSC_INSERT_VALUES);
+    PetscMatSetValues(A,idxm, idxn, [A_julia[i,j]],INSERT_VALUES);
   end
 end
 
 println("finished setting matrix values")
-PetscMatAssemblyBegin(A,PETSC_MAT_FINAL_ASSEMBLY);
-PetscMatAssemblyEnd(A,PETSC_MAT_FINAL_ASSEMBLY);
+PetscMatAssemblyBegin(A,MAT_FINAL_ASSEMBLY);
+PetscMatAssemblyEnd(A,MAT_FINAL_ASSEMBLY);
 println("finished assembling matrix")
 PetscView(A);
 

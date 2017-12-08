@@ -53,7 +53,7 @@ function test_indexing(format_j)
 
   @fact b2s --> roughly(vals, atol=1e-13)
 
-  set_values1!(b2s, idxm, vals, PETSC_ADD_VALUES)
+  set_values1!(b2s, idxm, vals, ADD_VALUES)
 
   @fact b2s --> roughly(2*vals, atol=1e-13)
   vals2 = zeros(vals)
@@ -67,7 +67,7 @@ function test_indexing(format_j)
   for i=1:sys_size_local
     idxm = [global_indices[i]]   # index
     val = [ rhs[i] ]  # value
-    VecSetValues(b, idxm, val, PETSC_INSERT_VALUES)
+    VecSetValues(b, idxm, val, INSERT_VALUES)
   end
 
   PETSc2.VecAssemble(b)

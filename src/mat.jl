@@ -160,8 +160,8 @@ end
 
 
 #=
-  PETSC_MAT_FLUSH_ASSEMBLY = 1;
-  PETSC_MAT_FINAL_ASSEMBLY = 0
+  MAT_FLUSH_ASSEMBLY = 1;
+  MAT_FINAL_ASSEMBLY = 0
 =#
 
 """
@@ -213,10 +213,10 @@ function MatAssemblyBegin(obj::PetscMat,flg::Integer)
 end
 
 """
-  MatAssemblyBegin, impicitly using `PETSC_MAT_FINAL_ASSEMBLY`
+  MatAssemblyBegin, impicitly using `MAT_FINAL_ASSEMBLY`
 """
 function MatAssemblyBegin(obj::PetscMat)
-  return MatAssemblyBegin(obj,PETSC_MAT_FINAL_ASSEMBLY);
+  return MatAssemblyBegin(obj,MAT_FINAL_ASSEMBLY);
 end
 
 """
@@ -227,10 +227,10 @@ function MatAssemblyEnd(obj::PetscMat,flg::Integer)
 end
 
 """
-  MatAssemblyEnd, implicitly using `PETSC_MAT_FINAL_ASSEMBLY`
+  MatAssemblyEnd, implicitly using `MAT_FINAL_ASSEMBLY`
 """
 function MatAssemblyEnd(obj::PetscMat)
-  return MatAssemblyEnd(obj,PETSC_MAT_FINAL_ASSEMBLY);
+  return MatAssemblyEnd(obj,MAT_FINAL_ASSEMBLY);
 end
 
 """

@@ -20,7 +20,7 @@ PetscVecSetSizes(b,10, comm_size*10);
 
 for i=1:10
   idxm = [(comm_rank)*10 + i]  # index
-  PetscVecSetValues(b,idxm,[10.0 + i],PETSC_ADD_VALUES);
+  PetscVecSetValues(b,idxm,[10.0 + i],ADD_VALUES);
 end
 
 
@@ -28,7 +28,7 @@ end
 
 #PetscVecSetValues(b,Array(1.0:10.));
 println("assigned first set of values")
-#PetscVecSetValues(b,[1,2],[11.5,12.5],PETSC_ADD_VALUES);
+#PetscVecSetValues(b,[1,2],[11.5,12.5],ADD_VALUES);
 println("assigned second set of values")
 PetscVecAssemblyBegin(b);
 println("began vector assembly")
@@ -46,12 +46,12 @@ PetscSetUp(A);
 for i=1:10
   idxm = [(comm_rank)*10 + i]  # row index
   idxn = [(comm_rank)*10 + i]  # column index
-  PetscMatSetValues(A,idxm, idxn,[10.0 + i],PETSC_ADD_VALUES);
+  PetscMatSetValues(A,idxm, idxn,[10.0 + i],ADD_VALUES);
 end
 
 println("finished setting matrix values")
-PetscMatAssemblyBegin(A,PETSC_MAT_FINAL_ASSEMBLY);
-PetscMatAssemblyEnd(A,PETSC_MAT_FINAL_ASSEMBLY);
+PetscMatAssemblyBegin(A,MAT_FINAL_ASSEMBLY);
+PetscMatAssemblyEnd(A,MAT_FINAL_ASSEMBLY);
 println("finished assembling matrix")
 PetscView(A);
 

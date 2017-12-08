@@ -5,7 +5,7 @@ function make_mat()
   low, high = MatGetOwnershipRange(A)
   global_indices = Array(low:PetscInt(high-1))
 
-  MatSetValues(A, global_indices, global_indices, A_julia, PETSC_INSERT_VALUES)
+  MatSetValues(A, global_indices, global_indices, A_julia, INSERT_VALUES)
   MatAssemblyBegin(A)
   MatAssemblyEnd(A)
 
@@ -21,7 +21,7 @@ function make_vec()
   for i=1:sys_size_local
     idxm = [global_indices[i]]   # index
     val = [ rhs[i] ]  # value
-    VecSetValues(x, idxm, val, PETSC_INSERT_VALUES)
+    VecSetValues(x, idxm, val, INSERT_VALUES)
   end
 
   VecAssemblyBegin(x)
@@ -74,7 +74,7 @@ function test_indexing()
 
     @fact A2s[idxm,  idxn] --> roughly(vals, atol=1e-13)
 
-    set_values1!(A2s, idxm, idxn, vals, PETSC_ADD_VALUES)
+    set_values1!(A2s, idxm, idxn, vals, ADD_VALUES)
 
     @fact A2s[idxm, idxn] --> roughly(2*vals, atol=1e-13)
     vals2 = zeros(vals)
@@ -85,7 +85,7 @@ function test_indexing()
     
     # test the sparse optimized version of +=
     A2ss = sparse(A2s)
-    set_values1!(A2ss, idxm, idxn, vals, PETSC_ADD_VALUES)
+    set_values1!(A2ss, idxm, idxn, vals, ADD_VALUES)
     fill!(vals2, 0.0)
     get_values1!(A2ss, idxm, idxn, vals2)
     @fact vals2 --> roughly(3*vals, atol=1e-13)
@@ -94,17 +94,17 @@ function test_indexing()
       for j = 1:sys_size_local
         idxm = [ global_indices[i] ] # row index
         idxn = [ global_indices[j] ] # column index
-        MatSetValues(A,idxm, idxn, [A_julia[i,j]],PETSC_INSERT_VALUES);
-        MatSetValues(B,idxm, idxn, [A_julia[i,j] + PetscScalar(1)],PETSC_INSERT_VALUES);
+        MatSetValues(A,idxm, idxn, [A_julia[i,j]],INSERT_VALUES);
+        MatSetValues(B,idxm, idxn, [A_julia[i,j] + PetscScalar(1)],INSERT_VALUES);
       end
     end
 
 
-    MatAssemblyBegin(A,PETSC_MAT_FINAL_ASSEMBLY);
-    MatAssemblyEnd(A,PETSC_MAT_FINAL_ASSEMBLY);
+    MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY);
+    MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY);
 
-    MatAssemblyBegin(B,PETSC_MAT_FINAL_ASSEMBLY);
-    MatAssemblyEnd(B,PETSC_MAT_FINAL_ASSEMBLY);
+    MatAssemblyBegin(B,MAT_FINAL_ASSEMBLY);
+    MatAssemblyEnd(B,MAT_FINAL_ASSEMBLY);
 
     PetscDestroy(A)
     PetscDestroy(B)
@@ -400,12 +400,12 @@ facts("----- Testing Matrix Preallocation -----") do
 
 #    println("idi = ", idi)
 #    println("idj = ", idj)
-    MatSetValues(C, idi, idj, A_julia_t, PETSC_INSERT_VALUES)
+    MatSetValues(C, idi, idj, A_julia_t, INSERT_VALUES)
   end
 
 
-  MatAssemblyBegin(C, PETSC_MAT_FINAL_ASSEMBLY)
-  MatAssemblyEnd(C, PETSC_MAT_FINAL_ASSEMBLY)
+  MatAssemblyBegin(C, MAT_FINAL_ASSEMBLY)
+  MatAssemblyEnd(C, MAT_FINAL_ASSEMBLY)
 
   matinfo = MatGetInfo(C, MAT_LOCAL)
 
