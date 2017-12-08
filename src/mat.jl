@@ -1,4 +1,4 @@
-export PetscMat, MatSetType, SetUp, MatSetValues, MatAssemblyBegin, MatAssemblyEnd, MatSetSizes, MatGetSize, MatGetValues, MatGetOwnershipRange, MatXAIJSetPreallocation, MatMPIAIJSetPreallocation, SetFromOptions, MatGetInfo, MatMatMult, MatNorm, MatZeroEntries, MatSetValuesBlocked, MatSetOption, MatCreateShell, MatShellSetOperation, MatShellGetContext, MatGetType, MatCreateTranspose, MatTranspose
+export PetscMat, MatSetType, SetUp, MatSetValues, MatAssemblyBegin, MatAssemblyEnd, MatSetSizes, MatGetSize, MatGetValues, MatGetOwnershipRange, MatXAIJSetPreallocation, MatMPIAIJSetPreallocation, SetFromOptions, MatGetInfo, MatMatMult, MatNorm, MatZeroEntries, MatSetValuesBlocked, MatSetOption, MatCreateShell, MatShellSetOperation, MatShellGetContext, MatShellSetContext, MatGetType, MatCreateTranspose, MatTranspose
 
 """
   PetscMat type.  Currently a subtype of `AbstractArray`, although that may
@@ -68,6 +68,12 @@ function MatShellGetContext(arg1::PetscMat)
     return arg2[]  # turn it into a julia object here?
 end
 
+
+function MatShellSetContext(arg1::PetscMat, arg2::Ptr{Void})
+# get the user provided context for the matrix shell
+    ccall((:MatShellSetContext,petsc),PetscErrorCode,(Ptr{Void},Ptr{Void}),arg1.pobj,arg2)
+    return nothing  # turn it into a julia object here?
+end
 
 
 
