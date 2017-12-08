@@ -73,7 +73,7 @@ function PetscVec(array::Array{PetscScalar})
   # want a PetscInt array so build it ourselves
   idx = Array(PetscInt, length(array));
   for i=1:length(array);  idx[i] = i-1;  end
-  err = ccall( ( :VecSetValues,  libpetsclocation), PetscErrorCode,(Ptr{Void},PetscInt, Ptr{PetscInt},Ptr{PetscScalar},Int32), vec.pobj,length(idx),idx,array,PETSC_INSERT_VALUES);
+  err = ccall( ( :VecSetValues,  libpetsclocation), PetscErrorCode,(Ptr{Void},PetscInt, Ptr{PetscInt},Ptr{PetscScalar},Int32), vec.pobj,length(idx),idx,array,INSERT_VALUES);
   err = ccall( ( :VecAssemblyBegin,  libpetsclocation), PetscErrorCode,(Ptr{Void},), vec.pobj);
   err = ccall( ( :VecAssemblyEnd,  libpetsclocation), PetscErrorCode, (Ptr{Void},), vec.pobj);
   return vec
@@ -91,17 +91,17 @@ function VecSetValues(vec::PetscVec,idx::Array{PetscInt},array::Array{PetscScala
 end
 
 """
-  VecSetValues method that implicitly uses `PETSC_INSERT_VALUES`
+  VecSetValues method that implicitly uses `INSERT_VALUES`
 """
 function VecSetValues(vec::PetscVec,idx::Array{PetscInt},array::Array{PetscScalar})
-  VecSetValues(vec,idx,array,PETSC_INSERT_VALUES)
+  VecSetValues(vec,idx,array,INSERT_VALUES)
 end
 
 #=
 function VecSetValues(vec::PetscVec,array::Array{PetscScalar})
   idx = Array(PetscInt,length(array))
   for i=1:length(array);  idx[i] = i-1;  end
-  VecSetValues(vec,idx,array,PETSC_INSERT_VALUES)
+  VecSetValues(vec,idx,array,INSERT_VALUES)
 end
 =#
 

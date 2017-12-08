@@ -37,22 +37,22 @@ function test_mat_interface()
     @fact norm(A_p, Inf) --> roughly(0.0)
 
     set_values1!(A_p, idx, idy, vals)
-    assembly_begin(A_p, PETSC_MAT_FINAL_ASSEMBLY)
-    assembly_end(A_p, PETSC_MAT_FINAL_ASSEMBLY)
+    assembly_begin(A_p, MAT_FINAL_ASSEMBLY)
+    assembly_end(A_p, MAT_FINAL_ASSEMBLY)
     scale!(A_p, 2.0)
     get_values1!(A_p, idx, idy, vals2)
     @fact norm(vals2 - 2*vals) --> roughly(0.0, atol=1e-14)
 
     set_values1!(A_p, idx, idy, vals)
-    assembly_begin(A_p, PETSC_MAT_FINAL_ASSEMBLY)
-    assembly_end(A_p, PETSC_MAT_FINAL_ASSEMBLY)
+    assembly_begin(A_p, MAT_FINAL_ASSEMBLY)
+    assembly_end(A_p, MAT_FINAL_ASSEMBLY)
 
     @fact vecnorm(A_p) --> roughly(vecnorm(vals), atol=1e-13)
 
     # test multiplication
     set_values1!(A_p, idx, idy, vals.')
-    assembly_begin(A_p, PETSC_MAT_FINAL_ASSEMBLY)
-    assembly_end(A_p, PETSC_MAT_FINAL_ASSEMBLY)
+    assembly_begin(A_p, MAT_FINAL_ASSEMBLY)
+    assembly_end(A_p, MAT_FINAL_ASSEMBLY)
 
 
     x = PetscVec(3, VECMPI, MPI.COMM_WORLD)
@@ -86,20 +86,20 @@ function test_setvalues1(A, idx, idy, vals)
 
   # check set_values1!, both modes
   set_values1!(A, idx, idy, vals)
-  assembly_begin(A, PETSC_MAT_FINAL_ASSEMBLY)
-  assembly_end(A, PETSC_MAT_FINAL_ASSEMBLY)
+  assembly_begin(A, MAT_FINAL_ASSEMBLY)
+  assembly_end(A, MAT_FINAL_ASSEMBLY)
   get_values1!(A, idx, idy, vals2)
   @fact norm(vals - vals2) --> roughly(0.0)
 
   set_values1!(A, idx, idy, vals)
-  assembly_begin(A, PETSC_MAT_FINAL_ASSEMBLY)
-  assembly_end(A, PETSC_MAT_FINAL_ASSEMBLY)
+  assembly_begin(A, MAT_FINAL_ASSEMBLY)
+  assembly_end(A, MAT_FINAL_ASSEMBLY)
   get_values1!(A, idx, idy, vals2)
   @fact norm(vals - vals2) --> roughly(0.0)
 
-  set_values1!(A, idx, idy, vals, PETSC_ADD_VALUES)
-  assembly_begin(A, PETSC_MAT_FINAL_ASSEMBLY)
-  assembly_end(A, PETSC_MAT_FINAL_ASSEMBLY)
+  set_values1!(A, idx, idy, vals, ADD_VALUES)
+  assembly_begin(A, MAT_FINAL_ASSEMBLY)
+  assembly_end(A, MAT_FINAL_ASSEMBLY)
   get_values1!(A, idx, idy, vals2)
   @fact norm(2*vals - vals2) --> roughly(0.0)
 

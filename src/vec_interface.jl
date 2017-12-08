@@ -42,7 +42,7 @@ end
   **Inputs**
 
    * vals: values to add/insert into the vector, must be length(idx)
-   * flag: PETSC_INSERT_VALUES or PETSC_ADD_VALUES
+   * flag: INSERT_VALUES or ADD_VALUES
 
   **Inputs/Outputs**
 
@@ -55,7 +55,7 @@ end
 
 
 """
-function set_values1!(vec::PetscVec, idx::Array{PetscInt}, vals::Array{PetscScalar}, flag::Integer=PETSC_INSERT_VALUES)
+function set_values1!(vec::PetscVec, idx::Array{PetscInt}, vals::Array{PetscScalar}, flag::Integer=INSERT_VALUES)
   for i=1:length(idx)
     idx[i] -= 1
   end
@@ -72,12 +72,12 @@ end
 """
   Method for AbstractVector
 """
-function set_values1!{T}(vec::AbstractVector, idx::Array{PetscInt}, vals::Array{T}, flag::Integer=PETSC_INSERT_VALUES)
-  if flag == PETSC_INSERT_VALUES
+function set_values1!{T}(vec::AbstractVector, idx::Array{PetscInt}, vals::Array{T}, flag::Integer=INSERT_VALUES)
+  if flag == INSERT_VALUES
     for i in idx
       vec[i] = vals[i]
     end
-  elseif flag == PETSC_ADD_VALUES
+  elseif flag == ADD_VALUES
     for i in idx
       vec[i] += vals[i]
     end

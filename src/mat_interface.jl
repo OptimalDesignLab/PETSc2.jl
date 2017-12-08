@@ -65,7 +65,7 @@ end
 
   **Inputs**
   
-   * flag: PETSC_INSERT_VALUES or PETSC_ADD_VALUES.  Note that the first one
+   * flag: INSERT_VALUES or ADD_VALUES.  Note that the first one
            result in non-deterministic behavior in parallel (in the general
            case)
 
@@ -88,7 +88,7 @@ end
   Aliasing restriction: idxm and idxn cannot alias
 """
 function set_values1!(mat::PetscMat, idxm::Array{PetscInt}, idxn::Array{PetscInt}, 
-                      vals::Array{PetscScalar}, flag::Integer=PETSC_INSERT_VALUES)
+                      vals::Array{PetscScalar}, flag::Integer=INSERT_VALUES)
 
   for i=1:length(idxm)
     idxm[i] -= 1
@@ -116,15 +116,15 @@ end
 """
 function set_values1!{T}(mat::AbstractMatrix, idxm::Array{PetscInt},
                          idxn::Array{PetscInt}, vals::Array{T},
-                         flag::Integer=PETSC_INSERT_VALUES)
+                         flag::Integer=INSERT_VALUES)
 
-  if flag == PETSC_INSERT_VALUES
+  if flag == INSERT_VALUES
     for i=1:length(idxn)
       for j=1:length(idxm)
         mat[idxm[j], idxn[i]] = vals[j, i]
       end
     end
-  elseif flag == PETSC_ADD_VALUES
+  elseif flag == ADD_VALUES
     for i=1:length(idxn)
       for j=1:length(idxm)
         mat[idxm[j], idxn[i]] += vals[j, i]
@@ -140,15 +140,15 @@ end
 """
 function set_values1!{T}(mat::SparseMatrixCSC, idxm::Array{PetscInt},
                          idxn::Array{PetscInt}, vals::Array{T},
-                         flag::Integer=PETSC_INSERT_VALUES)
+                         flag::Integer=INSERT_VALUES)
 
-  if flag == PETSC_INSERT_VALUES
+  if flag == INSERT_VALUES
     for i=1:length(idxn)
       for j=1:length(idxm)
         mat[idxm[j], idxn[i]] = vals[j, i]
       end
     end
-  elseif flag == PETSC_ADD_VALUES  # optimized += implementation
+  elseif flag == ADD_VALUES  # optimized += implementation
     # hoist
     colptr = mat.colptr
     rowval = mat.rowval
