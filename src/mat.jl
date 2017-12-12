@@ -44,7 +44,7 @@ end
 function MatCreateShell(arg1::MPI_Comm,arg2::Integer,arg3::Integer,arg4::Integer,arg5::Integer, arg6::Ptr{Void})
   # arg6 is the user provided context
     arg7 = Ref{Ptr{Void}}()
-    ccall((:MatCreateShell,petsc),PetscErrorCode,(MPI_Comm,PetscInt,PetscInt,PetscInt,PetscInt,Ptr{Void}, Ref{Ptr{Void}}),arg1,arg2,arg3,arg4,arg5,arg6,arg7)
+    ccall((:MatCreateShell,petsc),PetscErrorCode,(comm_type,PetscInt,PetscInt,PetscInt,PetscInt,Ptr{Void}, Ref{Ptr{Void}}),arg1,arg2,arg3,arg4,arg5,arg6,arg7)
     return PetscMat(arg7[])
 end
 
