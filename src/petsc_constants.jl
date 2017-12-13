@@ -52,9 +52,14 @@ end
 global const PETSC_DIR = ENV["PETSC_DIR"]
 global const PETSC_ARCH = ENV["PETSC_ARCH"]
 
+function finalizeMPI()
+  if MPI.Initialized()
+    MPI.Finalize()
+  end
+end
 if !MPI.Initialized()
   MPI.Init()
-  atexit( () -> MPI.Finalize())
+  atexit(finalizeMPI)
 end
   
 myrank = MPI.Comm_rank(MPI.COMM_WORLD)

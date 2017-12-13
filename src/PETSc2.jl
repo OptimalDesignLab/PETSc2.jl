@@ -67,13 +67,13 @@ PETSC_NORM_MAX       = PETSC_NORM_INFINITY;
 
   **Outputs**
 
-   * PetscBool
+   * Bool
 """
 function PetscInitialized()
   init = Array(PetscBool, 1);
   err = ccall( (:PetscInitialized,  libpetsclocation),Int32,(Ptr{PetscBool},), init);
 
-  return init[1]
+  return init[1] == PETSC_TRUE
 end
 
 """
@@ -113,7 +113,7 @@ function PetscInitialize(args,filename,help)
   #
 
  init = PetscInitialized()
- if (init != 0)
+ if (init)
 #    gc() # call garbage collection to force all PETSc objects be destroy that are queued up for destruction
 #    err = ccall( (:PetscFinalize,  libpetsclocation),Int32,());if (err != 0) return err; end
     err = PetscFinalize()
