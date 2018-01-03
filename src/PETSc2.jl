@@ -70,7 +70,7 @@ PETSC_NORM_MAX       = PETSC_NORM_INFINITY;
    * Bool
 """
 function PetscInitialized()
-  init = Array(PetscBool, 1);
+  init = Array{PetscBool}(1);
   err = ccall( (:PetscInitialized,  libpetsclocation),Int32,(Ptr{PetscBool},), init);
 
   return init[1] == PETSC_TRUE
@@ -124,7 +124,7 @@ function PetscInitialize(args,filename,help)
   end
 
   # convert arguments to Cstring
-  arr = Array(ByteString, length(args))
+  arr = Array{String}(length(args))
   for i = 1:length(args)
     arr[i] = Base.cconvert(Cstring, args[i])
     # = cstring(args[i])
@@ -137,15 +137,15 @@ function PetscInitialize(args,filename,help)
 end
 
 function getPETSC_COMM_SELF()
-  comm = Array(MPI.CComm, 1)
+  comm = Array{MPI.CComm}(1)
   err = ccall( (:PetscGetPETSC_COMM_SELF,  libpetsclocation),Int32,(Ptr{comm_type},),comm);
   return convert(MPI.Comm, comm[1])
 #   return MPI.COMM_WORLD.val
 end
 
 function PetscDataTypeFromString(name::AbstractString)
-    ptype = Array(Cint, 1)
-    found = Array(PetscBool, 1)
+    ptype = Array{Cint}(1)
+    found = Array{PetscBool}(1)
     ccall((:PetscDataTypeFromString,petsc),PetscErrorCode,(Cstring,Ptr{PetscDataType},Ptr{PetscBool}), name, ptype, found)
 
     return ptype[1], convert(Bool, found[1])
@@ -153,7 +153,7 @@ end
 
 
 function PetscDataTypeGetSize(dtype::PetscDataType)
-    datasize = Array(Csize_t, 1)
+    datasize = Array{Csize_t}(1)
     ccall((:PetscDataTypeGetSize,petsc),PetscErrorCode,(PetscDataType,Ptr{Csize_t}), dtype, datasize)
 
     return datasize[1]
@@ -176,7 +176,7 @@ type IS
   pobj::Ptr{Void}
   function IS(comm::MPI_Comm)
 #    comm = PETSC_COMM_SELF();
-    is = Array(Int64,1)
+    is = Array{Int64}(1)
     err = ccall( (:ISCreate,  libpetsclocation),Int32,(comm_type,Ptr{Void}),comm,is)
 #    if (err != 0)  # return type stability
 #      return err
@@ -214,7 +214,7 @@ end
   end
 
   function ISGetSize(obj::IS)
-    n = Array(PetscInt, 1)
+    n = Array{PetscInt}(1)
     err = ccall( ( :ISGetSize,  libpetsclocation), PetscErrorCode,(Ptr{Void}, Ptr{PetscInt}), obj.pobj, n);
     return n[1]
   end
@@ -222,7 +222,7 @@ end
   # this should really take the indices array as an arguments
   function ISGetIndices(obj::IS)
     len = ISGetSize(obj)
-    indices = Array(PetscInt,len)
+    indices = Array{PetscInt}(en)
     err = ccall( (:ISGetIndicesCopy,  libpetsclocation), PetscErrorCode,(Ptr{Void},Ptr{PetscInt}),obj.pobj,indices);
 
     return indices

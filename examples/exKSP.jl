@@ -20,7 +20,7 @@ npts = parse(Int, ARGS[1])
 myrank = MPI.Comm_rank(MPI.COMM_WORLD)
 commsize = MPI.Comm_size(MPI.COMM_WORLD)
 
-opts = Dict{ASCIIString, ASCIIString}(
+opts = Dict{String, String}(
   "-ksp_monitor" => "",
   "-malloc_dump" => "",
   "-pc_type" => "bjacobi",

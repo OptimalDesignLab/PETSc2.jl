@@ -2,7 +2,7 @@
 # export names
 # do typealiases have to be exported?  I don't think so
 
-typealias comm_type MPI.CComm
+global const comm_type = MPI.CComm
 
 export PETSC_NULL, PETSC_IGNORE, PETSC_DECIDE, PETSC_DETERMINE, PETSCDEFAULT, PETSC_COMM_SELF
 
@@ -91,20 +91,20 @@ global const libpetsc = Libdl.dlopen(libpetsclocation)
 # definitions of Petsc types
 # a way to automatically generate these would be preferable
 # define all the data types that are known a priori
-typealias Petsc64bitInt Int64
-#typealias PetscBLASInt Int32
-#typealias PetscScalar Cint
-typealias PetscBool UInt32
-typealias PetscDataType Cint  # C enums are Int32
+global const Petsc64bitInt = Int64
+#global const PetscBLASInt = Int32
+#global const PetscScalar = Cint
+global const PetscBool = UInt32
+global const PetscDataType = Cint  # C enums are Int32
 
-typealias PetscLogDouble Cdouble
-typealias PetscErrorCode Cint
+global const PetscLogDouble = Cdouble
+global const PetscErrorCode = Cint
 #=
 global const PETSC_PRECISION_SINGLE = (UInt32)(4)
 global const PETSC_PRECISION_DOUBLE = (UInt32)(8)
 =#
 
-typealias PetscViewer Ptr{Void}
+global const PetscViewer = Ptr{Void}
 
 global const PETSC_FALSE = (UInt32)(0)
 global const PETSC_TRUE = (UInt32)(1)
@@ -129,8 +129,8 @@ global const PETSC_STRING = (Int32)(12)
 # these functions are used for figuring out the sizes of the datatypes
 # use the ones in PETSc.jl for writing programs
 function PetscDataTypeFromString_(name::AbstractString)
-    ptype = Array(Cint, 1)
-    found = Array(PetscBool, 1)
+    ptype = Array{Cint}(1)
+    found = Array{PetscBool}(1)
     ccall((:PetscDataTypeFromString,petsc),PetscErrorCode,(Cstring,Ptr{PetscDataType},Ptr{PetscBool}), name, ptype, found)
 
     return ptype[1], convert(Bool, found[1])
@@ -138,7 +138,7 @@ end
 
 
 function PetscDataTypeGetSize_(dtype::PetscDataType)
-    datasize = Array(Csize_t, 1)
+    datasize = Array{Csize_t}(1)
     ccall((:PetscDataTypeGetSize,petsc),PetscErrorCode,(PetscDataType,Ptr{Csize_t}), dtype, datasize)
 
     return datasize[1]
@@ -221,17 +221,17 @@ end
 """
   Element type of Petsc vectors and matrices
 """
-typealias PetscScalar scalar_dtype
+global const PetscScalar = scalar_dtype
 
 """
   The closest real type to `PetscScalar`
 """
-typealias PetscReal real_dtype
+global const PetscReal = real_dtype
 
 """
   Petsc integer type
 """
-typealias PetscInt int_dtype
+global const PetscInt = int_dtype
 
 
 # some useful type unions
@@ -258,11 +258,11 @@ global const PETSC_DETERMINE = PETSC_DECIDE
 global const PETSC_DEFAULT = convert(Int32, -2)
 global const PETSC_COMM_SELF = MPI.COMM_SELF
 
-typealias MPI_Comm MPI.Comm  # use MPI package communicator type
+global const MPI_Comm = MPI.Comm  # use MPI package communicator type
 # typealias to size of MPI communicator value
 # this is not defined by the MPI C standard, so it might be
 # 32 bits (MPICH), or possibly 64 bits
-typealias comm_type MPI.CComm
+global const comm_type = MPI.CComm
 
 export PetscMatStructure
 export DIFFERENT_NONZERO_PATTERN, SUBSET_NONZERO_PATTERN, SAME_NONZERO_PATTERN
@@ -277,7 +277,7 @@ include("petsc_constants_gen.jl")
 
 # map values to string for printing
 export KSPConvergedReasonDict
-global const KSPConvergedReasonDict = Dict{KSPConvergedReason, ASCIIString}(
+global const KSPConvergedReasonDict = Dict{KSPConvergedReason, String}(
  KSP_CONVERGED_RTOL_NORMAL => "Converged: RTol normal",
  KSP_CONVERGED_ATOL_NORMAL => "Converged: ATol normal",
  KSP_CONVERGED_RTOL => "Converged: RTol",

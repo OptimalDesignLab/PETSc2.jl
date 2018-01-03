@@ -20,7 +20,7 @@ type PetscVec
   """
   function PetscVec(comm::MPI_Comm)
 #    comm = PETSC_COMM_SELF();
-    vec = Array(Ptr{Void},1)
+    vec = Array{Ptr{Void}}(1)
     err = ccall(( :VecCreate, libpetsclocation ), PetscErrorCode,(comm_type,Ptr{Void}),comm,vec);
     vec = new(vec[1])
 #    finalizer(vec,PetscDestroy)
@@ -45,7 +45,7 @@ end
 """
 Union{AbstractVector, PetscVec}
 """
-typealias AllVectors Union{AbstractVector, PetscVec}
+const AllVectors = Union{AbstractVector, PetscVec}
 
 """
   Free a Petsc vec.  Safe to call multiple times
@@ -71,7 +71,7 @@ function PetscVec(array::Array{PetscScalar})
   err = ccall(( :VecSetType,  libpetsclocation), PetscErrorCode,(Ptr{Void},Cstring), vec.pobj,"seq");
   err = ccall( (:VecSetSizes,  libpetsclocation), PetscErrorCode, (Ptr{Void}, PetscInt, PetscInt), vec.pobj,length(array),length(array));
   # want a PetscInt array so build it ourselves
-  idx = Array(PetscInt, length(array));
+  idx = Array{PetscInt}(length(array));
   for i=1:length(array);  idx[i] = i-1;  end
   err = ccall( ( :VecSetValues,  libpetsclocation), PetscErrorCode,(Ptr{Void},PetscInt, Ptr{PetscInt},Ptr{PetscScalar},Int32), vec.pobj,length(idx),idx,array,INSERT_VALUES);
   err = ccall( ( :VecAssemblyBegin,  libpetsclocation), PetscErrorCode,(Ptr{Void},), vec.pobj);
@@ -99,7 +99,7 @@ end
 
 #=
 function VecSetValues(vec::PetscVec,array::Array{PetscScalar})
-  idx = Array(PetscInt,length(array))
+  idx = Array{PetscInt}(ength(array))
   for i=1:length(array);  idx[i] = i-1;  end
   VecSetValues(vec,idx,array,INSERT_VALUES)
 end
@@ -154,7 +154,7 @@ end
    * the size
 """
 function VecGetSize(obj::PetscVec)
-  n = Array(PetscInt, 1)
+  n = Array{PetscInt}(1)
   err = ccall( ( :VecGetSize,  libpetsclocation), PetscErrorCode, (Ptr{Void},Ptr{PetscInt}), obj.pobj,n);
   return n[1]
 end
@@ -192,7 +192,7 @@ end
    * the norm value
 """
 function VecNorm(obj::PetscVec,normtype::Integer)
-  n = Array(PetscReal,1)
+  n = Array{PetscReal}()
   err = ccall( ( :VecNorm,  libpetsclocation), PetscScalar, (Ptr{Void},Int32,Ptr{PetscReal}), obj.pobj,normtype, n);
   return n[1]
 end
@@ -208,7 +208,7 @@ end
 function VecGetValues(vec::PetscVec, ni::Integer, ix::AbstractArray{PetscInt,1}, y::AbstractArray{PetscScalar,1})
 
      # need indices to be PetscInt
-#     ix_local = Array(PetscInt, ni)
+#     ix_local = Array{PetscInt}(ni)
 #     for i=1:ni
 #       ix_local[i] = ix[i]
 #     end
@@ -245,8 +245,8 @@ end
    * high: highest index + 1 that is owned
 """
 function VecGetOwnershipRange(vec::PetscVec)
-    low = Array(PetscInt, 1)
-    high = Array(PetscInt, 1)
+    low = Array{PetscInt}(1)
+    high = Array{PetscInt}(1)
 
     ccall((:VecGetOwnershipRange,petsc),PetscErrorCode,(Ptr{Void},Ptr{PetscInt},Ptr{PetscInt}),vec.pobj, low, high)
 
@@ -270,12 +270,12 @@ function VecGetArray(vec::PetscVec)
 # gets a pointer to the data underlying a Petsc vec, turns it into a Julia
 # array
 # ptr_arr must be passed into PetscVecRestoreArray
-    ptr_arr = Array(Ptr{PetscScalar}, 1)
+    ptr_arr = Array{Ptr{PetscScalar}}(1)
     ccall((:VecGetArray,petsc),PetscErrorCode,(Ptr{Void}, Ptr{Ptr{PetscScalar}}),vec.pobj, ptr_arr)
 
     first, last = VecGetOwnershipRange(vec)
     len = last - first
-    arr = pointer_to_array(ptr_arr[1], len)
+    arr = unsafe_wrap(Array, ptr_arr[1], len)
     return arr
 end
 
@@ -297,12 +297,12 @@ end
   Similar to `VecGetArray`, but produces the array must not be written to.
 """
 function VecGetArrayRead(vec::PetscVec)
-    ptr_arr = Array(Ptr{PetscScalar}, 1)
+    ptr_arr = Array{Ptr{PetscScalar}}(1)
     ccall((:VecGetArrayRead,petsc),PetscErrorCode,(Ptr{Void}, Ptr{Ptr{PetscScalar}}),vec.pobj, ptr_arr)
 
     first, last = VecGetOwnershipRange(vec)
     len = last - first
-    arr = pointer_to_array(ptr_arr[1], len)
+    arr = unsafe_wrap(Array, ptr_arr[1], len)
     return arr
 end
 
@@ -362,8 +362,8 @@ end
    * idx: the (zero-based) index of the maximum value
 """
 function VecMax(vec::PetscVec)
-    r = Array(PetscReal, 1) # max value
-    idx = Array(PetscInt, 1)  # index of max value
+    r = Array{PetscReal}(1) # max value
+    idx = Array{PetscInt}(1)  # index of max value
     ccall((:VecMax,petsc),PetscErrorCode,(Ptr{Void}, Ptr{PetscInt},Ptr{PetscReal}), vec.pobj, idx, r)
 
     return r[1], idx[1]
@@ -373,8 +373,8 @@ end
   VecMin. Same interface as `VecMax`
 """
 function VecMin(vec::PetscVec)
-    r = Array(PetscReal, 1) # min value
-    idx = Array(PetscInt, 1)  # index of min value
+    r = Array{PetscReal}(1) # min value
+    idx = Array{PetscInt}(1)  # index of min value
  
     ccall((:VecMin,petsc),PetscErrorCode,(Ptr{Void},Ptr{PetscInt},Ptr{PetscReal}), vec.pobj, idx, r)
 
