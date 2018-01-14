@@ -20,6 +20,7 @@ export KSP_NORM_DEFAULT, KSP_NORM_NONE, KSP_NORM_PRECONDITIONED, KSP_NORM_UNPREC
 
 export KSP_NORM_MAX
 
+export PetscIntNullArray, PetscScalarNullArray
 
 
 export VECSEQ
@@ -84,7 +85,6 @@ end
 global const libpetsclocation = string(PETSC_DIR, "/", PETSC_ARCH, "/lib/", "libpetsc")
 global const petsc = libpetsclocation # for compatability with auto generated wrappers
 global const libpetsc = Libdl.dlopen(libpetsclocation)
-
 
 
 
@@ -236,6 +236,9 @@ typealias PetscInt int_dtype
 
 # some useful type unions
 PetscInt_arr_or_null = Union{AbstractArray{PetscInt}, Ptr{Void}}
+
+global const PetscIntNullArray = pointer_to_array(Ptr{PetscInt}(C_NULL), 0)
+global const PetscScalarNullArray = pointer_to_array(Ptr{PetscScalar}(C_NULL), 0)
 
 #=
 global const PETSC_PI = pi
