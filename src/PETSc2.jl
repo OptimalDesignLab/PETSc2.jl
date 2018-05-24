@@ -124,9 +124,9 @@ function PetscInitialize(args,filename,help)
   end
 
   # convert arguments to Cstring
-  arr = Array(ByteString, length(args))
+  arr = Array(Ptr{UInt8}, length(args))
   for i = 1:length(args)
-    arr[i] = Base.cconvert(Cstring, args[i])
+    arr[i] = pointer(Base.cconvert(Cstring, args[i]))
     # = cstring(args[i])
   end
 #  ptrs = _jl_pre_exec(arr)

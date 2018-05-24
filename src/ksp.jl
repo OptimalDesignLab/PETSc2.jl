@@ -144,7 +144,7 @@ function GetType(ksp::KSP)
     ksptype = Array(Ptr{UInt8}, 1)
     ccall((:KSPGetType,petsc),PetscErrorCode,(Ptr{Void}, Ptr{Ptr{UInt8}}), ksp.pobj, ksptype)
 
-    return bytestring(ksptype[1])
+    return unsafe_string(ksptype[1])
 end
 
 """

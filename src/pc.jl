@@ -100,7 +100,7 @@ end
 function PCGetType(pc::PC)
     arr = Array(Ptr{UInt8}, 1)
     ccall((:PCGetType,petsc),PetscErrorCode,(Ptr{Void},Ptr{Ptr{UInt8}}), pc.pobj, arr)
-    return bytestring(arr[1])
+    return unsafe_string(arr[1])
 end
 
 """
@@ -220,7 +220,7 @@ function PCBJacobiGetSubKSP(pc::PC)
     ccall((:PCBJacobiGetSubKSP,petsc),PetscErrorCode,(Ptr{Void},Ptr{PetscInt},Ptr{PetscInt},Ptr{Ptr{Ptr{Void}}}), pc.pobj, n_local_arr, first_local, ksp_ptrarr)
 
     n_local = n_local_arr[1]
-    ksp_ptrarr2 = pointer_to_array(ksp_ptrarr[1], n_local)
+    ksp_ptrarr2 = unsafe_wrap(Vector{Ptr{Void}}, ksp_ptrarr[1], n_local)
 
     ksp_arr = Array(KSP, n_local)
     for i=1:n_local

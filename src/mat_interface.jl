@@ -376,7 +376,7 @@ import Base: norm, vecnorm
 """
   Norm for Petsc matrices, 1, 2, and infinity norms supported
 """
-function norm(A::PetscMat, p::Number)
+function norm(A::PetscMat, p::Real)
   if p == 1
     _p = NORM_1
   elseif p == 2

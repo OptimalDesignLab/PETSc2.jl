@@ -275,7 +275,7 @@ function VecGetArray(vec::PetscVec)
 
     first, last = VecGetOwnershipRange(vec)
     len = last - first
-    arr = pointer_to_array(ptr_arr[1], len)
+    arr = unsafe_wrap(Vector{PetscScalar}, ptr_arr[1], len)
     return arr
 end
 
@@ -302,7 +302,7 @@ function VecGetArrayRead(vec::PetscVec)
 
     first, last = VecGetOwnershipRange(vec)
     len = last - first
-    arr = pointer_to_array(ptr_arr[1], len)
+    arr = unsafe_wrap(Vector{PetscScalar}, ptr_arr[1], len)
     return arr
 end
 
