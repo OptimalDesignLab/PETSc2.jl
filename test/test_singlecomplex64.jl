@@ -1,10 +1,10 @@
 using FactCheck
 using PETSc2
-facts("  ---Checking Petsc data types---") do
+@testset "  ---Checking Petsc data types---" begin
 
-  @fact PetscScalar --> Complex64
-  @fact PetscReal --> Float32
-  @fact PetscInt --> Int64
+  @test ( PetscScalar )== Complex64
+  @test ( PetscReal )== Float32
+  @test ( PetscInt )== Int64
 
 end
 

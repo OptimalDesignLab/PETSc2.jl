@@ -41,25 +41,25 @@ function test_indexing(format_j)
 
   VecGetValues(b, global_indices, vals2)
 
-  @fact rhs --> roughly(vals2, atol=1e-13)
+  @test isapprox( rhs, vals2) atol=1e-13
   fill!(vals2, 0.0)
   get_values1!(b,  idxm, vals2)
-  @fact rhs --> roughly(vals2, atol=1e-13)
+  @test isapprox( rhs, vals2) atol=1e-13
 
   b2s = zeros(3)
   idxm = collect(PetscInt, 1:3)
   vals = rand(3)
   set_values1!(b2s, idxm, vals)
 
-  @fact b2s --> roughly(vals, atol=1e-13)
+  @test isapprox( b2s, vals) atol=1e-13
 
   set_values1!(b2s, idxm, vals, ADD_VALUES)
 
-  @fact b2s --> roughly(2*vals, atol=1e-13)
+  @test isapprox( b2s, 2*vals) atol=1e-13
   vals2 = zeros(vals)
   get_values1!(b2s, idxm, vals2)
 
-  @fact vals2 --> roughly(2*vals, atol=1e-13)
+  @test isapprox( vals2, 2*vals) atol=1e-13
 
 
 
@@ -103,17 +103,17 @@ function test_copy(format_j)
   VecGetValues(b, sys_size_local, global_indices, b_copy)
   VecGetValues(b2, sys_size_local, global_indices, b2_copy)
   for i=1:sys_size_local
-     @fact b_copy[i] --> roughly(rhs[i])
-     @fact b_arr[i] --> roughly(rhs[i])
-     @fact b_arr_ro[i] --> roughly(rhs[i])
-     @fact b2_copy[i] --> roughly(rhs[i])
+     @test isapprox( b_copy[i], rhs[i]) 
+     @test isapprox( b_arr[i], rhs[i]) 
+     @test isapprox( b_arr_ro[i], rhs[i]) 
+     @test isapprox( b2_copy[i], rhs[i]) 
   end
 
   VecRestoreArray(b, b_arr)
   VecRestoreArrayRead(b, b_arr_ro)
 
  
-  @fact VecGetSize(b) --> comm_size*sys_size_local
+  @test ( VecGetSize(b) )== comm_size*sys_size_local
 
   PetscDestroy(b)
   PetscDestroy(b2)
@@ -139,12 +139,12 @@ function test_linalg(format_j)
   for i=1:length(vec_norms)
     norm_petsc = VecNorm(b, vec_norms[i])
     norm_julia = norm(rhs, julia_vec_norms[i])
-    @fact VecNorm(b, vec_norms[i]) --> roughly( norm(rhs_global, julia_vec_norms[i]))
+    @test isapprox( VecNorm(b, vec_norms[i]), norm(rhs_global, julia_vec_norms[i])) 
     print("\n")
   end
   
   # check for non zero exit status is all we can really do here 
-  @fact PetscView(b, 0) --> 0
+  @test ( PetscView(b, 0) )== 0
 
 
   # test math functions
@@ -153,63 +153,63 @@ function test_linalg(format_j)
   VecGetValues(b, sys_size_local, global_indices, b_copy)
   for i=1:sys_size_local
     rhs_tmp[i] = sqrt(abs(rhs_tmp[i]))
-    @fact b_copy[i] --> roughly(rhs_tmp[i])
+    @test isapprox( b_copy[i], rhs_tmp[i]) 
   end
 
   VecLog(b)
   VecGetValues(b, sys_size_local, global_indices, b_copy)
   for i=1:sys_size_local
     rhs_tmp[i] = log(rhs_tmp[i])
-    @fact b_copy[i] --> roughly(rhs_tmp[i])
+    @test isapprox( b_copy[i], rhs_tmp[i]) 
   end
 
   VecExp(b)
   VecGetValues(b, sys_size_local, global_indices, b_copy)
   for i=1:sys_size_local
     rhs_tmp[i] = exp(rhs_tmp[i])
-    @fact b_copy[i] --> roughly(rhs_tmp[i])
+    @test isapprox( b_copy[i], rhs_tmp[i]) 
   end
 
   VecAbs(b)
   VecGetValues(b, sys_size_local, global_indices, b_copy)
   for i=1:sys_size_local
     rhs_tmp[i] = abs(rhs_tmp[i])
-    @fact b_copy[i] --> roughly(rhs_tmp[i])
+    @test isapprox( b_copy[i], rhs_tmp[i]) 
   end
 
   petsc_r, petsc_idx = VecMax(b)
   julia_r = maximum(real(b_copy))
   julia_idx = indmax(real(b_copy))
 
-  @fact petsc_r --> roughly(julia_r)
-  @fact petsc_idx --> (julia_idx - 1)
+  @test isapprox( petsc_r, julia_r) 
+  @test ( petsc_idx )== (julia_idx - 1)
 
   petsc_r, petsc_idx = VecMin(b)
   julia_r = minimum(real(b_copy))
   julia_idx = indmin(real(b_copy))
 
-  @fact petsc_r --> roughly(julia_r)
-  @fact petsc_idx --> (julia_idx - 1)
+  @test isapprox( petsc_r, julia_r) 
+  @test ( petsc_idx )== (julia_idx - 1)
 
   VecReciprocal(b)
   VecGetValues(b, sys_size_local, global_indices, b_copy)
   for i=1:sys_size_local
     rhs_tmp[i] = 1/rhs_tmp[i]
-    @fact b_copy[i] --> roughly(rhs_tmp[i])
+    @test isapprox( b_copy[i], rhs_tmp[i]) 
   end
 
   VecShift(b, PetscScalar(2.0))
   VecGetValues(b, sys_size_local, global_indices, b_copy)
   for i=1:sys_size_local
     rhs_tmp[i] = rhs_tmp[i] + 2.0
-    @fact b_copy[i] --> roughly(rhs_tmp[i])
+    @test isapprox( b_copy[i], rhs_tmp[i]) 
   end
 
   VecPointwiseMult(b3, b, b2)
   VecGetValues(b3, sys_size_local, global_indices, b_copy)
   for i=1:sys_size_local
     rhs_tmp2[i] = rhs_tmp[i]*rhs[i]
-    @fact b_copy[i] --> roughly(rhs_tmp2[i])
+    @test isapprox( b_copy[i], rhs_tmp2[i]) 
   end
 
 
@@ -217,7 +217,7 @@ function test_linalg(format_j)
   VecGetValues(b3, sys_size_local, global_indices, b_copy)
   for i=1:sys_size_local
     rhs_tmp2[i] = rhs_tmp[i]/rhs[i]
-    @fact b_copy[i] --> roughly(rhs_tmp2[i])
+    @test isapprox( b_copy[i], rhs_tmp2[i]) 
   end
 
 
@@ -233,7 +233,7 @@ function test_linalg(format_j)
   rhs_tmp += alpha*rhs
   VecGetValues(b, sys_size_local, global_indices, b_copy)
   for i=1:sys_size_local
-    @fact b_copy[i] --> roughly(rhs_tmp[i])
+    @test isapprox( b_copy[i], rhs_tmp[i]) 
   end
 
   #=
@@ -241,7 +241,7 @@ function test_linalg(format_j)
   rhs_tmp = alpha*rhs + beta*rhs_tmp
   VecGetValues(b, sys_size_local, global_indices, b_copy)
   for i=1:sys_size_local
-    @fact b_copy[i] --> roughly(rhs_tmp[i])
+    @test isapprox( b_copy[i], rhs_tmp[i]) 
   end
 =#
 
@@ -249,14 +249,14 @@ function test_linalg(format_j)
   rhs_tmp = alpha*rhs_tmp + rhs
   VecGetValues(b, sys_size_local, global_indices, b_copy)
   for i=1:sys_size_local
-    @fact b_copy[i] --> roughly(rhs_tmp[i])
+    @test isapprox( b_copy[i], rhs_tmp[i]) 
   end
 
   VecWAXPY(b3, alpha, b, b2)
   rhs_tmp2 = alpha*rhs_tmp + rhs
   VecGetValues(b3, sys_size_local, global_indices, b_copy)
   for i=1:sys_size_local
-    @fact b_copy[i] --> roughly(rhs_tmp2[i])
+    @test isapprox( b_copy[i], rhs_tmp2[i]) 
   end
 
   # MAXPY
@@ -266,41 +266,41 @@ function test_linalg(format_j)
   rhs_tmp += alpha*rhs + beta*rhs_tmp2
   VecGetValues(b, sys_size_local, global_indices, b_copy)
   for i=1:sys_size_local
-    @fact b_copy[i] --> roughly(rhs_tmp[i])
+    @test isapprox( b_copy[i], rhs_tmp[i]) 
   end
 
   VecAXPBYPCZ(b, alpha, beta, gamma, b2, b3)
   rhs_tmp = alpha*rhs + beta*rhs_tmp2 + gamma*rhs_tmp
   VecGetValues(b, sys_size_local, global_indices, b_copy)
   for i=1:sys_size_local
-    @fact b_copy[i] --> roughly(rhs_tmp[i])
+    @test isapprox( b_copy[i], rhs_tmp[i]) 
   end
 
   VecScale(b, alpha)
   rhs_tmp *= alpha
    VecGetValues(b, sys_size_local, global_indices, b_copy)
   for i=1:sys_size_local
-    @fact b_copy[i] --> roughly(rhs_tmp[i])
+    @test isapprox( b_copy[i], rhs_tmp[i]) 
   end
 
 
   petsc_r = VecDot(b, b2)
   julia_r = comm_size*rhs'*rhs_tmp  # note reversed b, b2
 
-  @fact petsc_r --> roughly(julia_r[1])
+  @test isapprox( petsc_r, julia_r[1]) 
 
 #=
   petsc_r = VecTDot(b, b2)
   julia_r = rhs_tmp.'*rhs
 
-  @fact petsc_r --> roughly(julia_r[1])
+  @test isapprox( petsc_r, julia_r[1]) 
 
   println("finished testing VecTDot")
 
   petsc_r =  VecSum(b2)
   julia_r = sum(rhs_global)
 
-  @fact petsc_r --> roughly(julia_r)
+  @test isapprox( petsc_r, julia_r) 
   
   println("finished testing VecSum")
 
@@ -309,8 +309,8 @@ function test_linalg(format_j)
   VecGetValues(b, sys_size_local, global_indices, b_copy)
   VecGetValues(b2, sys_size_local, global_indices, b2_copy)
   for i=1:sys_size_local
-    @fact b_copy[i] --> roughly(rhs[i])
-    @fact b2_copy[i] --> roughly(rhs_tmp[i])
+    @test isapprox( b_copy[i], rhs[i]) 
+    @test isapprox( b2_copy[i], rhs_tmp[i]) 
   end
 
   println("finished testing VecSwap")
@@ -329,7 +329,7 @@ end
 
 
 
-facts("\n   ---Testing vector functions---") do
+@testset "\n   ---Testing vector functions---" begin
 
 for j=1:length(vec_formats)
 #  format_j = "standard"

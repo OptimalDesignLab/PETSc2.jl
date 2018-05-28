@@ -1,6 +1,11 @@
 
 using PETSc2
-using FactCheck
+using Base.Test
+
+function not_isapprox(args...; kwargs...)
+  return !isapprox(args...; kwargs...)
+end
+
 
 
 import MPI
@@ -141,4 +146,3 @@ include("test_options.jl")
 #include("test_prealloc.jl")
 
 PetscFinalize()
-FactCheck.exitstatus()

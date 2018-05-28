@@ -1,5 +1,5 @@
 function test_options()
-  facts("----- testing options -----") do
+  @testset "----- testing options -----" begin
 
     PetscOptionsSetValue("-testkey", "42")
     PetscOptionsView()
