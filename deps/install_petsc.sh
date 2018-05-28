@@ -15,6 +15,8 @@ else
   exit 1
 fi
 
+echo "found python: " `which python`
+
 # get tarball if it is not present
 if [ ! -e ./$petsc_name$fmt ]
 then
