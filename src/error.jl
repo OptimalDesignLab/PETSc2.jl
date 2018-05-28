@@ -7,8 +7,8 @@
 function error_handler(comm::comm_type, line::Cint, func::Ptr{UInt8}, file::Ptr{UInt8}, n::PetscErrorCode, p::PetscErrorType, mess::Ptr{UInt8}, ctx::Ptr{Void})
 # receives the error call from Petsc
 
-  func_string = bytestring(func)
-  file_string = bytestring(file)
+  func_string = unsafe_string(func)
+  file_string = unsafe_string(file)
 
   if p == PETSC_ERROR_INITIAL
     p_string = "Initial Petsc Error"
@@ -20,7 +20,7 @@ function error_handler(comm::comm_type, line::Cint, func::Ptr{UInt8}, file::Ptr{
     pstring = "Unknown PetscErrorType"
   end
 
-  mess_string = bytestring(mess)
+  mess_string = unsafe_string(mess)
   print_with_color(:red, STDERR, string("\n### ERROR: PETSc Internal Error ###\n"))
   print_with_color(:red, STDERR, string("Error in function ", func_string, ", file ", file_string, "\n"))
   print_with_color(:red, STDERR, string("Error number: ", n, ", Error type: ", p_string, "\n"))

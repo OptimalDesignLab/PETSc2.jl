@@ -9,8 +9,8 @@
 """
   Map (all possible) datatype strings to the printf format specifier
 """
-global const FORMAT_SPEC = Dict{ASCIIString, ASCIIString}(
-"ASCIIString" => "%s",
+global const FORMAT_SPEC = Dict{String, String}(
+"String" => "%s",
 "Cint" => "%i",
 "Int32" => "%i",
 "Uint32" => "%u",
@@ -21,15 +21,25 @@ global const FORMAT_SPEC = Dict{ASCIIString, ASCIIString}(
   Map enum name to datatype (string representation)
 """
 function get_enum_types()
+  println("getting enum types")
   f = open("../petsc_constants_gen.jl")
 
-  enum_type_dict = Dict{ASCIIString, ASCIIString}()
+  enum_type_dict = Dict{String, String}()
+  prev_line_empty = true  # flag for blank line, start as true so first
+                          # line of file is not blank
   for line in eachline(f)
-    if startswith(line, "typealias")
+    if isempty(line)
+      prev_line_empty = true
+    elseif startswith(line, "global const") && prev_line_empty
+      # this is the start of a paragraph, first entry must be typealias
       words = split(line)
-      @assert length(words) == 3
-      enum_type_dict[ words[2] ] = words[3]
+      @assert length(words) == 5
+      enum_type_dict[ words[3] ] = words[5]
+      prev_line_empty = false
+    elseif !isempty(line)
+        prev_line_empty = false
     end
+
   end
 
   close(f)
@@ -39,28 +49,38 @@ end
 function get_enum_names()
   f = open("../petsc_constants_gen.jl")
 
+  println("getting enum names")
+
   in_enum = false  # mode flag
   typealias_name = ""  # current enum name
-  enum_name_dict = Dict{ASCIIString, Vector{ASCIIString}}()
+  enum_name_dict = Dict{String, Vector{String}}()
+  prev_line_empty = true  # flag for blank line
   for line in eachline(f)
     # find the typealias, get all constant names following it (until space)
-    if startswith(line, "typealias")
+    if startswith(line, "global const") && prev_line_empty
       in_enum = true
+      prev_line_empty = false
       words = split(line)
-      typealias_name = words[2]
+      typealias_name = words[3]
       
       if typealias_name in keys(enum_name_dict)
         error("repeat typealias named $typealias_name detected")
       end
 
       # make blank vector to populate later
-      enum_name_dict[typealias_name] = ASCIIString[]
+      enum_name_dict[typealias_name] = String[]
     elseif in_enum && startswith(line, "global const")  # get an enum name
       words = split(line)
       push!(enum_name_dict[typealias_name], words[3])
-    else  # end enum section
+      prev_line_empty = false
+    elseif in_enum && isempty(line) # end enum section
       in_enum = false
       typealias_name = ""
+      prev_line_empty = true
+    elseif isempty(line)
+      prev_line_empty = true
+    elseif !isempty(line)
+      prev_line_empty = false
     end
 
   end  # end loop over lines
@@ -93,13 +113,14 @@ function print_cbody(type_dict, name_dict, f::IO)
 
   indent = "  "
   nl = "\\n"  # newline
+
   for i in keys(type_dict)
     datatype = type_dict[i]
     println(f, "\n", indent, "// typealias $i")
-    println(f, indent, "fprintf(f, \"typealias $i $(datatype)$(nl)\");")
+    println(f, indent, "fprintf(f, \"global const $i $(datatype)$(nl)\");")
 
     # add quotes around strings
-    if datatype == "ASCIIString"
+    if datatype == "String"
       mark = "\\\""
     else
       mark = ""
@@ -135,6 +156,7 @@ function print_cfooter(f::IO)
   
   indent = "  "
   println(f, "\n", indent, "PetscFinalize();")
+  println(f, "\n", indent, "printf(\"finished writing petsc_constants_gen.jl\\n\");")
   println(f, "\n",  indent, "return 0;")
   println(f, "}")
 

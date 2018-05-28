@@ -100,7 +100,7 @@ end
 function PCGetType(pc::PC)
     arr = Array(Ptr{UInt8}, 1)
     ccall((:PCGetType,petsc),PetscErrorCode,(Ptr{Void},Ptr{Ptr{UInt8}}), pc.pobj, arr)
-    return bytestring(arr[1])
+    return unsafe_string(arr[1])
 end
 
 """

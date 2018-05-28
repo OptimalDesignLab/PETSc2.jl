@@ -365,7 +365,7 @@ facts("----- Testing Matrix Preallocation -----") do
 
   # preallocation parameters
   bs = PetscInt(1)
-  dnnz = 3*ones(PetscInt, nb*sys_size_local)  # on diagonal (row + column owned by this process)
+  dnnz = PetscInt(3)*ones(PetscInt, nb*sys_size_local)  # on diagonal (row + column owned by this process)
   onnz = zeros(PetscInt, nb*sys_size_local)  # no off diagonal (column not owned by this process)
   dnnzu = Array(PetscInt, 0)  # this is not a symmetric matrix, so unused
   onnzu = Array(PetscInt, 0)  # this is not a symmetric matrix, so unused
