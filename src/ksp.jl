@@ -1,5 +1,5 @@
 
-export KSP, SetOperators, SetFromOptions, KSPSolve,  SetUp, KSPSolveTranspose, KSP_NULL
+export KSP, SetOperators, GetOperators, SetFromOptions, KSPSolve,  SetUp, KSPSolveTranspose, KSP_NULL
 
 
 export GetConvergedReason, PetscView, SetType, GetType, SetTolerances, GetTolerances, SetInitialGuessNonzero, GetInitialGuessNonzero, GetResidualNorm
@@ -74,6 +74,18 @@ end
 function SetOperators(ksp::KSP,Amat::PetscMat,Pmat::PetscMat)
    err = ccall((:KSPSetOperators,petsc),PetscErrorCode,(Ptr{Void},Ptr{Void},Ptr{Void}), ksp.pobj, Amat.pobj, Pmat.pobj)
 end
+
+"""
+  KSPGetOperators
+"""
+function GetOperators(ksp::KSP)
+   Amat = Ref{Ptr{Void}}()
+   Pmat = Ref{Ptr{Void}}()
+   err = ccall((:KSPGetOperators,petsc),PetscErrorCode,(Ptr{Void},Ptr{Ptr{Void}},Ptr{Ptr{Void}}), ksp.pobj, Amat, Pmat)
+
+   return PetscMat(Amat[]), PetscMat(Pmat[])
+end
+
 
 """
   SetFromOptions
