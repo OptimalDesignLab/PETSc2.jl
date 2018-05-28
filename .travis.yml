@@ -2,7 +2,7 @@ language: julia
 os:
   - linux
 julia:
-  - 0.4.4
+  - 0.6
 notifications:
   email: false
 
@@ -12,12 +12,13 @@ before_install:
   - sudo apt-get install -y liblapack-dev liblapack-doc liblapack3gf
   - sudo apt-get install -y libblas-dev libblas-doc libblas3gf
   - echo `pwd`
-install:
-  - ls ./deps
-  - ls -lh ./deps/travis-install-mpi.sh
   - sudo ./deps/travis-install-mpi.sh mpich3
-  - ls ./
-  - ls ../
+  # setting these variables will help cmake find MPI
+  - export CC=mpicc
+  - export FC=mpif90
+  - export CXX=mpicxx
+
+install:
   - julia -e 'Pkg.init()'
   - cd ~/.julia/v0.4/
   - julia -e 'Pkg.clone("https://github.com/OptimalDesignLab/PETSc2.jl.git")'
