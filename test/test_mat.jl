@@ -3,7 +3,7 @@ function make_mat()
    A = PetscMat(PETSC_DECIDE, PETSC_DECIDE,  "mpiaij", comm, mlocal=sys_size_local, nlocal=sys_size_local)
   SetUp(A)
   low, high = MatGetOwnershipRange(A)
-  global_indices = Array(low:PetscInt(high-1))
+  global_indices = collect(low:PetscInt(high-1))
 
   MatSetValues(A, global_indices, global_indices, A_julia, INSERT_VALUES)
   MatAssemblyBegin(A)
@@ -16,7 +16,7 @@ function make_vec()
   x = PetscVec(PETSC_DECIDE, VECMPI,  comm, mlocal=sys_size_local)
 
   low, high = VecGetOwnershipRange(x)
-  global_indices = Array(low:PetscInt(high - 1))
+  global_indices = collect(low:PetscInt(high - 1))
  
   for i=1:sys_size_local
     idxm = [global_indices[i]]   # index
@@ -40,11 +40,11 @@ function test_indexing()
     
     x = make_vec()
     low, high = VecGetOwnershipRange(x)
-    global_indices = Array(low:PetscInt(high - 1))
+    global_indices = collect(low:PetscInt(high - 1))
     xvec_julia = copy(rhs)
 
     low, high = MatGetOwnershipRange(A)
-    global_indices = Array(low:PetscInt(high - 1))
+    global_indices = collect(low:PetscInt(high - 1))
     
     B_julia = A_julia + PetscScalar(1)
 
@@ -125,7 +125,7 @@ function test_transpose()
 
     b2t = make_vec()
     low, high = VecGetOwnershipRange(b2t)
-    global_indices = Array(low:PetscInt(high - 1))
+    global_indices = collect(low:PetscInt(high - 1))
    
     x2 = make_vec()
 
@@ -226,7 +226,7 @@ facts("----- Testing Matrix BLAS -----") do
   xvec_julia = copy(rhs)
 
   low, high = VecGetOwnershipRange(x)
-  global_indices = Array(low:PetscInt(high - 1))
+  global_indices = collect(low:PetscInt(high - 1))
 
   @fact size(A) --> (sys_size_local, sys_size_local)
   @fact size(A, 1) --> sys_size_local
@@ -367,8 +367,8 @@ facts("----- Testing Matrix Preallocation -----") do
   bs = PetscInt(1)
   dnnz = PetscInt(3)*ones(PetscInt, nb*sys_size_local)  # on diagonal (row + column owned by this process)
   onnz = zeros(PetscInt, nb*sys_size_local)  # no off diagonal (column not owned by this process)
-  dnnzu = Array(PetscInt, 0)  # this is not a symmetric matrix, so unused
-  onnzu = Array(PetscInt, 0)  # this is not a symmetric matrix, so unused
+  dnnzu = Array{PetscInt}(0)  # this is not a symmetric matrix, so unused
+  onnzu = Array{PetscInt}(0)  # this is not a symmetric matrix, so unused
 
   MatXAIJSetPreallocation(C, bs, dnnz, onnz, dnnzu, onnzu)
 

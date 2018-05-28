@@ -2,10 +2,10 @@ function make_vec(format_j)
 
   b = PetscVec(sys_size_global, format_j, comm)
   low, high = VecGetOwnershipRange(b)
-  global_indices = Array(low:PetscInt(high - 1))
+  global_indices = collect(low:PetscInt(high - 1))
 
   idxm = global_indices + PetscInt(1)  # 1 based indexing
-  vals = Array(PetscScalar, sys_size_local)
+  vals = Array{PetscScalar}(sys_size_local)
   for i=1:sys_size_local
     vals[i] = rhs[i]
   end
@@ -26,7 +26,7 @@ function test_indexing(format_j)
   #=
   b = PetscVec(sys_size_global, format_j, comm)
   idxm = global_indices + PetscInt(1)  # 1 based indexing
-  vals = Array(PetscScalar, sys_size_local)
+  vals = Array{PetscScalar}(sys_size_local)
   for i=1:sys_size_local
     vals[i] = i
   end
@@ -36,7 +36,7 @@ function test_indexing(format_j)
   vals2 = zeros(rhs)
 
   low, high = VecGetOwnershipRange(b)
-  global_indices = Array(low:PetscInt(high - 1)) 
+  global_indices = collect(low:PetscInt(high - 1)) 
   idxm = global_indices + PetscInt(1)  # 1 based indexing
 
   VecGetValues(b, global_indices, vals2)
@@ -83,14 +83,14 @@ function test_copy(format_j)
   b = make_vec(format_j)
 
   low, high = VecGetOwnershipRange(b)
-  global_indices = Array(low:PetscInt(high - 1)) 
+  global_indices = collect(low:PetscInt(high - 1)) 
 
   # check that the vector was set/assembled correctly
   # check all the methods of copying/accesing a vector work
   b_copy = zeros(PetscScalar, sys_size_local)
   b2_copy = zeros(PetscScalar, sys_size_local)
-#  idx = Array(0:2)  
-#  idx = Array(PetscInt, 3)
+#  idx = collect(0:2)  
+#  idx = Array{PetscInt}(3)
 #  for i=1:sys_size_local
 #    idx[i] = global_indices[i]
 #  end
@@ -131,7 +131,7 @@ function test_linalg(format_j)
   b3 = PetscVec(sys_size_global, format_j, comm)
 
   low, high = VecGetOwnershipRange(b)
-  global_indices = Array(low:PetscInt(high - 1)) 
+  global_indices = collect(low:PetscInt(high - 1)) 
 
   b_copy = zeros(PetscScalar, sys_size_local)
   b2_copy = zeros(PetscScalar, sys_size_local)

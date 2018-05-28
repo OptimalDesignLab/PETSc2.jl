@@ -42,7 +42,7 @@ sys_size_global = sys_size_local*comm_size
 
 # indicies of the vector owned by this process
 # create these with smallest precision, so they can be promoted
-tmp2 = convert(Array{Float32,1}, Array(1.0:3))
+tmp2 = convert(Array{Float32,1}, collect(1.0:3))
 tmp = convert(Array{Float32, 2}, [1.0 2.0 3; 4 5 7; 7 8 9])
 
 tmp3 = convert(Array{Complex64, 1}, [1.0 + 0im; 2.0 + 1.0im; 3.0 + 2.0im])

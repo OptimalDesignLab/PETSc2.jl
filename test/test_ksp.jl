@@ -6,18 +6,18 @@ function test_ksp()
     b = make_vec()
 
     low, high = VecGetOwnershipRange(b)
-    b_global_indices = Array(low:PetscInt(high - 1))
+    b_global_indices = collect(low:PetscInt(high - 1))
    
     x = make_vec()
     low, high = VecGetOwnershipRange(x)
-    x_global_indices = Array(low:PetscInt(high - 1))
+    x_global_indices = collect(low:PetscInt(high - 1))
 
     println("making matrix for ksp solve")  
     A = make_mat()
     MatTranspose(A, inplace=true)
 
     low, high = MatGetOwnershipRange(A)
-    mat_global_indices = Array(low:PetscInt(high - 1))
+    mat_global_indices = collect(low:PetscInt(high - 1))
    
 
     # perform solve

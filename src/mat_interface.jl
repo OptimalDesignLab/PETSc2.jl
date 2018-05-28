@@ -156,7 +156,7 @@ function set_values1!{T}(mat::SparseMatrixCSC, idxm::Array{PetscInt},
     for i=1:length(idxn)
       row_start = colptr[idxn[i]]
       row_end = colptr[idxn[i]+1] - 1
-      rowvals_extract = unsafe_view(rowval, row_start:row_end)
+      rowvals_extract = unsafe_aview(rowval, row_start:row_end)
       for j=1:length(idxm)
         idx = searchsortedfirst(rowvals_extract, idxm[j])
         idx = row_start + idx - 1
