@@ -65,7 +65,7 @@ end
    * PC: pc object
 """
 function KSPGetPC(ksp::KSP)
-    arr = Array(Ptr{Void}, 1)
+    arr = Array{Ptr{Void}}(1)
     ccall((:KSPGetPC,petsc),PetscErrorCode,(Ptr{Void},Ptr{Void}),ksp.pobj, arr)
     return PC(arr[1])
 end
@@ -98,7 +98,7 @@ end
    * string contianing the PC type
 """
 function PCGetType(pc::PC)
-    arr = Array(Ptr{UInt8}, 1)
+    arr = Array{Ptr{UInt8}}(1)
     ccall((:PCGetType,petsc),PetscErrorCode,(Ptr{Void},Ptr{Ptr{UInt8}}), pc.pobj, arr)
     return unsafe_string(arr[1])
 end
@@ -122,7 +122,7 @@ end
    * PetscBool
 """
 function PCFactorGetUseInPlace(pc::PC)
-    arr = Array(PetscBool, 1)
+    arr = Array{PetscBool}(1)
     ccall((:PCFactorGetUseInPlace,petsc),PetscErrorCode,(Ptr{Void},Ptr{PetscBool}), pc.pobj, arr)
     return arr[1]
 end
@@ -147,7 +147,7 @@ end
    * PetscBool
 """
 function PCGetReusePreconditioner(pc::PC)
-    arr = Array(PetscBool, 1)
+    arr = Array{PetscBool}(1)
     ccall((:PCGetReusePreconditioner,petsc),PetscErrorCode,(Ptr{Void}, Ptr{PetscBool}), pc.pobj, arr)
     return arr[1]
 end
@@ -171,7 +171,7 @@ end
    * PetscBool
 """
 function PCFactorGetAllowDiagonalFill(pc::PC)
-   arr = Array(PetscBool, 1)
+   arr = Array{PetscBool}(1)
     ccall((:PCFactorGetAllowDiagonalFill,petsc),PetscErrorCode,(Ptr{Void},Ptr{PetscBool}), pc.pobj, arr)
     return arr[1]
 end
@@ -195,7 +195,7 @@ end
    * PetscInt
 """
 function PCFactorGetLevels(pc::PC)
-    arr = Array(PetscInt, 1)
+    arr = Array{PetscInt}(1)
     ccall((:PCFactorGetLevels,petsc),PetscErrorCode,(Ptr{Void},Ptr{PetscInt}),pc.pobj, arr)
     return arr[1]
 end
@@ -214,15 +214,15 @@ end
    * ksp_arr: array of KSP object
 """
 function PCBJacobiGetSubKSP(pc::PC)
-    n_local_arr = Array(PetscInt, 1)
-    first_local = Array(PetscInt, 1)
-    ksp_ptrarr = Array(Ptr{Ptr{Void}}, 1)
+    n_local_arr = Array{PetscInt}(1)
+    first_local = Array{PetscInt}(1)
+    ksp_ptrarr = Array{Ptr{Ptr{Void}}}(1)
     ccall((:PCBJacobiGetSubKSP,petsc),PetscErrorCode,(Ptr{Void},Ptr{PetscInt},Ptr{PetscInt},Ptr{Ptr{Ptr{Void}}}), pc.pobj, n_local_arr, first_local, ksp_ptrarr)
 
     n_local = n_local_arr[1]
     ksp_ptrarr2 = unsafe_wrap(Array, ksp_ptrarr[1], n_local)
 
-    ksp_arr = Array(KSP, n_local)
+    ksp_arr = Array{KSP}(n_local)
     for i=1:n_local
       ksp_arr[i] = KSP(ksp_ptrarr2[i])
     end
@@ -256,7 +256,7 @@ end
    * string containing the type
 """
 function PCJacobiGetType(pc::PC)
-    arr = Array(PCJacobiType, 1)
+    arr = Array{PCJacobiType}(1)
     ccall((:PCJacobiGetType,petsc),PetscErrorCode,(Ptr{Void},Ptr{PCJacobiType}),pc.pobj, arr)
     return arr[1]
 end
@@ -298,7 +298,7 @@ end
 
   **Outputs**
 
-   * Ptr{Void}.  Users shoudl call unsafe_pointer_to_objref() on it to get the
+   * Ptr{Void}.  Users should call unsafe_pointer_to_objref() on it to get the
                  Julia object back
 """
 function PCShellGetContext(arg1::PC)

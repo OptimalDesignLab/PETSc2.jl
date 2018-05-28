@@ -22,7 +22,7 @@ type KSP
      * ksp object
   """
   function KSP(comm::MPI_Comm)  # constructor for KSP owned by the user
-      ptr = Array(Ptr{Void}, 1)
+      ptr = Array{Ptr{Void}}(1)
       ierr = ccall((:KSPCreate,petsc),PetscErrorCode,(comm_type, Ptr{Void}),comm, ptr)
       @assert(ierr == 0)
       obj = new(ptr[1])
@@ -128,7 +128,7 @@ end
    * string containing reason
 """
 function GetConvergedReason(ksp::KSP)
-    reason = Array(KSPConvergedReason, 1)
+    reason = Array{KSPConvergedReason}(1)
     ccall((:KSPGetConvergedReason,petsc),PetscErrorCode,(Ptr{Void},Ptr{KSPConvergedReason}), ksp.pobj, reason)
 
     return reason[1]
@@ -153,7 +153,7 @@ end
    * string containing KSP type
 """
 function GetType(ksp::KSP)
-    ksptype = Array(Ptr{UInt8}, 1)
+    ksptype = Array{Ptr{UInt8}}(1)
     ccall((:KSPGetType,petsc),PetscErrorCode,(Ptr{Void}, Ptr{Ptr{UInt8}}), ksp.pobj, ksptype)
 
     return unsafe_string(ksptype[1])
@@ -182,10 +182,10 @@ end
    * maxits
 """
 function GetTolerances(ksp::KSP)
-    rtol = Array(PetscReal,1)
-    abstol = Array(PetscReal,1)
-    dtol = Array(PetscReal,1)
-    maxits = Array(PetscInt, 1)
+    rtol = Array{PetscReal}(1)
+    abstol = Array{PetscReal}(1)
+    dtol = Array{PetscReal}(1)
+    maxits = Array{PetscInt}(1)
 
     ccall((:KSPGetTolerances,petsc),PetscErrorCode,(KSP,Ptr{PetscReal},Ptr{PetscReal},Ptr{PetscReal},Ptr{PetscInt}), ksp, rtol, abstol, dtol, maxits)
 
@@ -211,7 +211,7 @@ end
    * PetscBool
 """
 function GetInitialGuessNonzero(ksp::KSP)
-    flg_arr = Array(PetscBool, 1)
+    flg_arr = Array{PetscBool}(1)
     ccall((:KSPGetInitialGuessNonzero,petsc),PetscErrorCode,(Ptr{Void}, Ptr{PetscBool}), ksp.pobj, flg_arr)
     return flg_arr[1]
 end
@@ -228,7 +228,7 @@ end
    * PetscReal
 """
 function GetResidualNorm(ksp::KSP)
-   rnorm = Array(PetscReal, 1)
+   rnorm = Array{PetscReal}(1)
    ccall((:KSPGetResidualNorm,petsc),PetscErrorCode,(Ptr{Void}, Ptr{PetscReal}),ksp.pobj, rnorm)
 
     return rnorm[1]

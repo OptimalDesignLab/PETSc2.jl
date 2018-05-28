@@ -316,8 +316,8 @@ end
    * n: second dimension size
 """
 function MatGetSize(obj::PetscMat)
-  m = Array(PetscInt, 1)
-  n = Array(PetscInt, 1)
+  m = Array{PetscInt}(1)
+  n = Array{PetscInt}(1)
   err = ccall(Libdl.dlsym(libpetsc, :MatGetSize), PetscErrorCode,(Ptr{Void}, Ptr{PetscInt},Ptr{PetscInt}), obj.pobj,m,n);
   return m[1],n[1]
 end
@@ -329,8 +329,8 @@ export MatGetLocalSize
   MatGetLocalsize.  Same interface as `MatGetSize`
 """
 function MatGetLocalSize(mat::PetscMat)
-    m = Array(PetscInt, 1)
-    n = Array(PetscInt, 1)
+    m = Array{PetscInt}(1)
+    n = Array{PetscInt}(1)
     ccall((:MatGetLocalSize,petsc),PetscErrorCode,(Ptr{Void},Ptr{PetscInt},Ptr{PetscInt}),mat.pobj, m, n)
     return m[1], n[1]
 end
@@ -370,8 +370,8 @@ end
    * high: highest + 1 (zero-based) index that is owned
 """
 function MatGetOwnershipRange(mat::PetscMat)
-    low = Array(PetscInt,1)
-    high = Array(PetscInt,1)
+    low = Array{PetscInt}(1)
+    high = Array{PetscInt}(1)
     ccall((:MatGetOwnershipRange,petsc),PetscErrorCode,(Ptr{Void},Ptr{PetscInt},Ptr{PetscInt}),mat.pobj, low, high)
 
     return low[1], high[1]
@@ -392,7 +392,7 @@ end
   MatNorm
 """
 function MatNorm(mat::PetscMat, ntype::NormType)
-    nrm = Array(PetscReal, 1)
+    nrm = Array{PetscReal}(1)
     ccall((:MatNorm,petsc),PetscErrorCode,(Ptr{Void}, NormType,Ptr{PetscReal}), mat.pobj, ntype, nrm)
     return nrm[1]
 end
@@ -529,7 +529,7 @@ function getindex(A::PetscMat, i::Integer, j::Integer)
 
   i_ = [PetscInt(i - 1)]
   j_ = [PetscInt(j - 1)]
-  val = Array(PetscScalar, 1, 1)
+  val = Array{PetscScalar}(1, 1)
 
   MatGetValues(A, i_, j_, val)
 
@@ -548,7 +548,7 @@ function getindex(A::PetscMat, idx::Integer)
 
   i_ = [PetscInt(i)]
   j_ = [PetscInt(j)]
-  val = Array(PetscScalar, 1, 1)
+  val = Array{PetscScalar}(1, 1)
 
   MatGetValues(A, i_, j_, val)
   return val[1]

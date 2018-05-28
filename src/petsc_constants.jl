@@ -237,8 +237,8 @@ global const PetscInt = int_dtype
 # some useful type unions
 PetscInt_arr_or_null = Union{AbstractArray{PetscInt}, Ptr{Void}}
 
-global const PetscIntNullArray = pointer_to_array(Ptr{PetscInt}(C_NULL), 0)
-global const PetscScalarNullArray = pointer_to_array(Ptr{PetscScalar}(C_NULL), 0)
+global const PetscIntNullArray = unsafe_wrap(Vector{PetscInt}, Ptr{PetscInt}(C_NULL), 0)
+global const PetscScalarNullArray = unsafe_wrap(Vector{PetscScalar}, Ptr{PetscScalar}(C_NULL), 0)
 
 #=
 global const PETSC_PI = pi

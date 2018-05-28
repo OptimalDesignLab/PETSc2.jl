@@ -424,7 +424,7 @@ end
   VecDulicate
 """
 function VecDuplicate( vec::PetscVec)
-    ptr_arr = Array(Ptr{Void}, 1)
+    ptr_arr = Array{Ptr{Void}}(1)
 
     ccall((:VecDuplicate,petsc),PetscErrorCode,( Ptr{Void}, Ptr{Ptr{Void}}), vec.pobj, ptr_arr)
 
@@ -488,7 +488,7 @@ end
   VecDot
 """
 function VecDot(x::PetscVec, y::PetscVec)
-    r = Array(PetscScalar, 1)
+    r = Array{PetscScalar}(1)
     err = ccall((:VecDot,petsc),PetscErrorCode,( Ptr{Void}, Ptr{Void}, Ptr{PetscScalar}), x.pobj, y.pobj, r)
 
     println("PetscVecDot error code = ", err)
@@ -499,7 +499,7 @@ end
   VecTDot
 """
 function VecTDot(x::PetscVec, y::PetscVec)
-    r = Array(PetscScalar, 1)
+    r = Array{PetscScalar}(1)
     ccall((:VecTDot,petsc),PetscErrorCode,(Ptr{Void}, Ptr{Void},Ptr{PetscScalar}), x.pobj, y.pobj, r)
 
     return r[1]
@@ -509,7 +509,7 @@ end
   VecSum
 """
 function VecSum(vec::PetscVec)
-    r = Array(PetscScalar, 1)
+    r = Array{PetscScalar}(1)
     ccall((:VecSum,petsc),PetscErrorCode,(Ptr{Void},Ptr{PetscScalar}),vec.pobj, r)
     return r[1]
 end
