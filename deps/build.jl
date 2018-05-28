@@ -4,6 +4,8 @@ if !isdir(joinpath(Pkg.dir(), "PkgFix"))
 end
 Pkg.checkout("PkgFix", "upgrade_0.6")
 
+using PkgFix
+
 
 
 #=
