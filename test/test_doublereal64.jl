@@ -1,4 +1,4 @@
-using FactCheck
+using Base.Test
 using PETSc2
 
 @testset "  ---Checking Petsc data types---" begin
@@ -9,4 +9,4 @@ using PETSc2
 
 end
 
-FactCheck.exitstatus()
+

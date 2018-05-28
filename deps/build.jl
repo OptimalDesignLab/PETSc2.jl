@@ -1,3 +1,11 @@
+# install PkgFix if not present
+if !isdir(joinpath(Pkg.dir(), "PkgFix"))
+  Pkg.clone("https://github.com/OptimalDesignLab/PkgFix.jl.git")
+end
+Pkg.checkout("PkgFix", "upgrade_0.6")
+
+
+
 #=
 pkg_dict = Pkg.installed()  # get dictionary of installed package names to version numbers
 
@@ -23,6 +31,21 @@ if !(haskey(pkg_dict, "FactCheck"))
   Pkg.build("FactCheck")
 end
 =#
+
+
+global const ARRAYVIEWS_URL = "http://github.com/JuliaArrays/ArrayViews.jl.git"
+global const ARRAYVIEWS_VER = "master"
+
+pkg_dict = PkgFix.installed()
+
+if !haskey(pkg_dict, "ArrayViews")
+  PkgFix.add(ARRYAVIEWS_URL, branch_ish=ARRAYVIEWS_VER)
+else
+  PkgFix.checkout("ArrayViews", ARRAYVIEWS_VER)
+end
+
+
+
 
 if !haskey(ENV, "PETSC_DIR")  && !haskey(ENV, "PETSC_ARCH")
  run(`./install_petsc.sh`)
