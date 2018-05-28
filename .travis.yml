@@ -20,7 +20,7 @@ before_install:
 
 install:
   - julia -e 'Pkg.init()'
-  - cd ~/.julia/v0.4/
+  - cd ~/.julia/v0.6/
   - julia -e 'Pkg.clone("https://github.com/OptimalDesignLab/PETSc2.jl.git")'
   - cd ./PETSc2/
   - export PETSC_DIR=""  # avoid building petsc here
