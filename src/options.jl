@@ -4,7 +4,7 @@ export PetscOptionsSetValue, PetscOptionsClearValue, PetscOptionsView, PetscSetO
 """
   Typedef of PetscOptions
 """
-typealias PetscOptions Ptr{Void}
+const PetscOptions = Ptr{Void}
 
 """
   PetscOptionsSetValue

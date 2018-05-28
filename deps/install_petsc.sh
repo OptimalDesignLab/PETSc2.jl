@@ -35,7 +35,8 @@ unset PETSC_ARCH
 cd ./$petsc_name
 
 # regular (debug) version
-./configure $1 $2 $3 > fout
+echo python 2 configure $1 $2 $3
+python2 configure $1 $2 $3 > fout
 
 # optimized version
 #./configure --with-debugging=0 COPTFLAGS='-O3 -march=native -mtrune=native' CXXOPTFLAGS='-O3 -march=native -mtune=native' FOPTFLAGS='-O3 -march=native -mtune=native' > fout
@@ -46,14 +47,14 @@ echo "finished configure"
 PETSC_ARCH=$(cat ./fout | grep "PETSC_ARCH:" | awk '{print $2}')
 
 # get the command printed out on the second to last line
-cmd=$(tail --lines=2 ./fout | head --lines=1)
+cmd=$(tail -n2 ./fout | head -n1)
 # execute the command
 
 $cmd MAKE_NP=4 > fout2
 
 echo "finished first command"
 
-cmd2=$(tail --lines=2 ./fout2 | head --lines=1)
+cmd2=$(tail -n2 ./fout2 | head -n1)
 # execute the command
 
 $cmd2 MAKE_NP=4 > fout3

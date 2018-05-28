@@ -11,7 +11,7 @@ if !haskey(pkg_dict, "ArrayViews")
   start_dir = pwd()
   cd(Pkg.dir("ArrayViews"))
   run(`git checkout 93e80390aeedb1dbcd90281b6dff7f760f430bc8`)
-  cd (start_dir)
+  cd(start_dir)
 end
 
 if !(haskey(pkg_dict, "FactCheck"))

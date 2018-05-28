@@ -20,7 +20,7 @@ npts = parse(Int, ARGS[1])
 myrank = MPI.Comm_rank(MPI.COMM_WORLD)
 commsize = MPI.Comm_size(MPI.COMM_WORLD)
 
-opts = Dict{ASCIIString, ASCIIString}(
+opts = Dict{String, String}(
   "-ksp_monitor" => "",
   "-malloc_dump" => "",
   "-pc_type" => "bjacobi",
@@ -73,7 +73,7 @@ if myrank == 0
     idx += 1
   end
 
-  set_values1!(A, idxm, idxn, stencil, PETSC_ADD_VALUES)
+  set_values1!(A, idxm, idxn, stencil, ADD_VALUES)
 end
 
 if myrank == (commsize-1)
@@ -87,7 +87,7 @@ if myrank == (commsize-1)
     idx += 1
   end
 
-  set_values1!(A, idxm, idxn, stencil, PETSC_ADD_VALUES)
+  set_values1!(A, idxm, idxn, stencil, ADD_VALUES)
 end
 
 # do everything else
@@ -105,11 +105,11 @@ for i = first_row:last_row
   idxn[1] = i-1
   idxn[2] = i
   idxn[3] = i+1
-  set_values1!(A, idxm, idxn, stencil, PETSC_ADD_VALUES)
+  set_values1!(A, idxm, idxn, stencil, ADD_VALUES)
 end
 
 # start assembly
-assembly_begin(A, PETSC_MAT_FINAL_ASSEMBLY)
+assembly_begin(A, MAT_FINAL_ASSEMBLY)
 
 # populate right hand side
 b_tmp = VecGetArray(b)
@@ -127,7 +127,7 @@ SetTolerances(ksp, 1e-12, 1e-12, PETSc2.PETSC_DEFAULT, PETSc2.PETSC_DEFAULT)
 
 
 # end matrix assembly
-assembly_end(A, PETSC_MAT_FINAL_ASSEMBLY)
+assembly_end(A, MAT_FINAL_ASSEMBLY)
 
 # view the matrix
 PetscView(A)

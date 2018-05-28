@@ -16,7 +16,7 @@ type PetscMat  <: AbstractArray{PetscScalar, 2}
   """
   function PetscMat(comm::MPI_Comm)
 #    comm = PETSC_COMM_SELF();
-    vec = Array(Ptr{Void},1)
+    vec = Array{Ptr{Void}}(1)
     err = ccall( (:MatCreate,  libpetsclocation), PetscErrorCode, (comm_type, Ptr{Ptr{Void}}),comm,vec);
     vec = new(vec[1])
 #    finalizer(vec,PetscDestroy)
