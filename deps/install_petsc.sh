@@ -5,6 +5,16 @@ fmt=.tar.gz
 
 echo "building PETSc in `pwd`"
 
+# find a python, preferably python2
+if which python2; then
+  pthn="python2"
+elif which python; then
+  pthn="python"
+else
+  echo "cannot locate python, which is required for Petsc configuration, exiting..."
+  exit 1
+fi
+
 # get tarball if it is not present
 if [ ! -e ./$petsc_name$fmt ]
 then
@@ -35,8 +45,8 @@ unset PETSC_ARCH
 cd ./$petsc_name
 
 # regular (debug) version
-echo python 2 configure $1 $2 $3
-python2 configure $1 $2 $3 > fout
+echo $pthn configure $1 $2 $3
+$pthn configure $1 $2 $3 > fout
 
 # optimized version
 #./configure --with-debugging=0 COPTFLAGS='-O3 -march=native -mtrune=native' CXXOPTFLAGS='-O3 -march=native -mtune=native' FOPTFLAGS='-O3 -march=native -mtune=native' > fout
