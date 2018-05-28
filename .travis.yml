@@ -20,6 +20,14 @@ before_install:
 
 install:
   -  if [[ -a .git/shallow ]]; then git fetch --unshallow; fi 
+  # Installing the package being tested on Travis is a little screwy.
+  # Initially the package is in ~/build/OptimalDesignLab/PETSc2.jl, (which
+  # is the initial pwd as well).
+  # The Pkg.clone(pwd()) line below effectively copies the package from
+  # the original location to ~/.julia/v0.6/PETSc2.
+  # Now there are *2* copies of the package.  Running ./test/runtest.sh
+  # runs runtest.sh file of the *original* copy, even though using PDESolver
+  # loads the code in copy in ~/.julia/v0.6/PETSc2.
   - julia --check-bounds=yes -e 'versioninfo(); Pkg.clone(pwd())'
   - export PETSC_DIR=""  # avoid building petsc here
   - export PETSC_ARCH=""
@@ -29,6 +37,7 @@ install:
 #  - julia ./deps/build.jl
   - unset PETSC_DIR  # have the tests build PETSc
   - unset PETSC_ARCH
+  - cd ~/.julia/v0.6/PETSc2  # run the tests on the copy here
  
   
 # uncomment the following lines to override the default test script
