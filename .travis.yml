@@ -9,8 +9,8 @@ notifications:
 before_install:
   - sudo apt-get update -qq
   - sudo apt-get install build-essential gfortran perl g++ gcc cmake m4 git
-  - sudo apt-get install -y liblapack-dev liblapack-doc liblapack3gf
-  - sudo apt-get install -y libblas-dev libblas-doc libblas3gf
+  - sudo apt-get install -y liblapack-dev liblapack3gf
+  - sudo apt-get install -y libblas-dev libblas3gf
   - echo `pwd`
   - sudo ./deps/travis-install-mpi.sh mpich3
   # setting these variables will help cmake find MPI
@@ -19,13 +19,14 @@ before_install:
   - export CXX=mpicxx
 
 install:
-  - julia -e 'Pkg.init()'
-  - cd ~/.julia/v0.6/
-  - julia -e 'Pkg.clone("https://github.com/OptimalDesignLab/PETSc2.jl.git")'
-  - cd ./PETSc2/
+  -  if [[ -a .git/shallow ]]; then git fetch --unshallow; fi 
+  - julia --check-bounds=yes -e 'versioninfo(); Pkg.clone(pwd())'
   - export PETSC_DIR=""  # avoid building petsc here
   - export PETSC_ARCH=""
-  - julia ./deps/build.jl
+  - julia -e 'Pkg.build("PETSc2")'
+#  - julia -e 'Pkg.clone("https://github.com/OptimalDesignLab/PETSc2.jl.git")'
+#  - cd ./PETSc2/
+#  - julia ./deps/build.jl
   - unset PETSC_DIR  # have the tests build PETSc
   - unset PETSC_ARCH
  
