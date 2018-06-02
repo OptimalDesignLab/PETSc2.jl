@@ -9,8 +9,8 @@
 """
   Map (all possible) datatype strings to the printf format specifier
 """
-global const FORMAT_SPEC = Dict{ASCIIString, ASCIIString}(
-"ASCIIString" => "%s",
+global const FORMAT_SPEC = Dict{String, String}(
+"String" => "%s",
 "Cint" => "%i",
 "Int32" => "%i",
 "Uint32" => "%u",
@@ -23,7 +23,7 @@ global const FORMAT_SPEC = Dict{ASCIIString, ASCIIString}(
 function get_enum_types()
   f = open("../petsc_constants_gen.jl")
 
-  enum_type_dict = Dict{ASCIIString, ASCIIString}()
+  enum_type_dict = Dict{String, String}()
   for line in eachline(f)
     if startswith(line, "typealias")
       words = split(line)
@@ -41,7 +41,7 @@ function get_enum_names()
 
   in_enum = false  # mode flag
   typealias_name = ""  # current enum name
-  enum_name_dict = Dict{ASCIIString, Vector{ASCIIString}}()
+  enum_name_dict = Dict{String, Vector{String}}()
   for line in eachline(f)
     # find the typealias, get all constant names following it (until space)
     if startswith(line, "typealias")
@@ -54,7 +54,7 @@ function get_enum_names()
       end
 
       # make blank vector to populate later
-      enum_name_dict[typealias_name] = ASCIIString[]
+      enum_name_dict[typealias_name] = String[]
     elseif in_enum && startswith(line, "global const")  # get an enum name
       words = split(line)
       push!(enum_name_dict[typealias_name], words[3])
@@ -99,7 +99,7 @@ function print_cbody(type_dict, name_dict, f::IO)
     println(f, indent, "fprintf(f, \"typealias $i $(datatype)$(nl)\");")
 
     # add quotes around strings
-    if datatype == "ASCIIString"
+    if datatype == "String"
       mark = "\\\""
     else
       mark = ""
