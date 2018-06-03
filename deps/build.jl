@@ -35,8 +35,9 @@ end
 =#
 
 
-global const ARRAYVIEWS_URL = "http://github.com/JuliaArrays/ArrayViews.jl.git"
-global const ARRAYVIEWS_VER = "master"
+global const ARRAYVIEWS_URL = "https://github.com/JaredCrean2/ArrayViews.jl.git"
+global const ARRAYVIEWS_VER = "fix_depwarn"
+
 
 pkg_dict = PkgFix.installed()
 
