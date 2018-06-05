@@ -40,5 +40,10 @@ Even when running serially, the MPI.jl package must be installed.
   `/docs`: documentation (using Documenter.jl)
 
 
+# Versions
+
+v0.1: tag before upgrading from Julia 0.4 to Julia 0.6
+v0.2: tag after upgrading from Julia 0.4 to Julia 0.6
+
 [![Build Status](https://travis-ci.org/OptimalDesignLab/PETSc2.jl.svg?branch=master)](https://travis-ci.org/OptimalDesignLab/PETSc2.jl)
 [![](https://img.shields.io/badge/docs-latest-blue.svg)](https://OptimalDesignLab.github.io/PETSc2.jl/latest)
