@@ -1,23 +1,23 @@
 function test_ksp()
 
-  facts("\n   ---testing KSP solvers---") do
+  @testset "\n   ---testing KSP solvers---" begin
   # create vectors and matrices
 
     b = make_vec()
 
     low, high = VecGetOwnershipRange(b)
-    b_global_indices = Array(low:PetscInt(high - 1))
+    b_global_indices = collect(low:PetscInt(high - 1))
    
     x = make_vec()
     low, high = VecGetOwnershipRange(x)
-    x_global_indices = Array(low:PetscInt(high - 1))
+    x_global_indices = collect(low:PetscInt(high - 1))
 
     println("making matrix for ksp solve")  
     A = make_mat()
     MatTranspose(A, inplace=true)
 
     low, high = MatGetOwnershipRange(A)
-    mat_global_indices = Array(low:PetscInt(high - 1))
+    mat_global_indices = collect(low:PetscInt(high - 1))
    
 
     # perform solve
@@ -28,13 +28,13 @@ function test_ksp()
     KSPSolve(ksp, b, x)
     reason = GetConvergedReason(ksp)
 
-    @fact reason --> greater_than(0)  # convergence
+    @test  reason  > 0# convergence
 
     # copy solution back to Julia
     x_copy = zeros(PetscScalar, sys_size_local)
     VecGetValues(x, sys_size_local, x_global_indices, x_copy)
     for i=1:sys_size_local
-        @fact x_copy[i] --> roughly(x_julia[i], atol=1e-14)
+        @test isapprox( x_copy[i], x_julia[i]) atol=1e-14
     end
 
     PetscDestroy(ksp)
@@ -53,7 +53,7 @@ function test_ksp()
 
     PCSetType(pc, PETSc2.PCBJACOBI)
     pctype = PCGetType(pc)
-    @fact pctype --> PETSc2.PCBJACOBI
+    @test ( pctype )== PETSc2.PCBJACOBI
     #PCFactorSetUseInPlace(pc, PetscBool(true))
 
     ### Do some KSP setup
@@ -71,22 +71,22 @@ function test_ksp()
     pc2 = KSPGetPC(ksp2)
 
     PCSetReusePreconditioner(pc2, PetscBool(true))
-    @fact PCGetReusePreconditioner(pc2) --> true
+    @test ( PCGetReusePreconditioner(pc2) )== true
 
     PCFactorSetAllowDiagonalFill(pc2, PetscBool(true))
-    @fact PCFactorGetAllowDiagonalFill(pc2) --> true
+    @test ( PCFactorGetAllowDiagonalFill(pc2) )== true
 
     PCFactorSetLevels(pc2, PetscInt(1))
-    @fact PCFactorGetLevels(pc2) --> 1  # should be pc2
+    @test ( PCFactorGetLevels(pc2) )== 1  # should be pc2
 
     PCSetReusePreconditioner(pc2, PetscBool(true))
-    @fact PCGetReusePreconditioner(pc2) --> true
+    @test ( PCGetReusePreconditioner(pc2) )== true
 
     PCFactorSetFill(pc, PetscReal(7.0))
 
     #=
     PCJacobiSetType(pc, PETSc2.PC_JACOBI_ROWMAX)
-    @fact PCJacobiGetType(pc) --> PETSc2.PC_JACOBI_ROWMAX
+    @test ( PCJacobiGetType(pc) )== PETSc2.PC_JACOBI_ROWMAX
     =#
 
 
@@ -96,7 +96,7 @@ function test_ksp()
     #=
     tmp = PCFactorGetUseInPlace(pc)
     println("tmp = ", tmp)
-    @fact PCFactorGetUseInPlace(pc) --> true
+    @test ( PCFactorGetUseInPlace(pc) )== true
     =#
 
 
@@ -104,27 +104,27 @@ function test_ksp()
     reason = GetConvergedReason(ksp)
     ksptype = GetType(ksp)
 
-    @fact ksptype --> PETSc2.KSPLGMRES
+    @test ( ksptype )== PETSc2.KSPLGMRES
 
 
     rtol_ret, abstol_ret, dtol_ret, maxits_ret = GetTolerances(ksp)
 
-    @fact rtol_ret --> roughly(rtol)
-    @fact abstol_ret --> roughly(abstol)
-    @fact dtol_ret --> roughly(dtol)
-    @fact maxits_ret --> maxits
-    @fact GetInitialGuessNonzero(ksp) --> true
-    @fact reason --> greater_than(0)  # convergence
+    @test isapprox( rtol_ret, rtol) 
+    @test isapprox( abstol_ret, abstol) 
+    @test isapprox( dtol_ret, dtol) 
+    @test ( maxits_ret )== maxits
+    @test ( GetInitialGuessNonzero(ksp) )== true
+    @test  reason  > 0# convergence
 
     rnorm = GetResidualNorm(ksp)
-    @fact rnorm --> less_than(abstol)
+    @test  rnorm  < abstol
 
     # copy solution back to Julia
     x_copy = zeros(PetscScalar, sys_size_local)
 
     VecGetValues(x, sys_size_local, x_global_indices, x_copy)
     for i=1:sys_size_local
-        @fact x_copy[i] --> roughly(x_julia[i], atol=1e-14)
+        @test isapprox( x_copy[i], x_julia[i]) atol=1e-14
     end
 
 

@@ -1,11 +1,11 @@
-using FactCheck
+using Base.Test
 using PETSc2
-facts("  ---Checking Petsc data types---") do
+@testset "  ---Checking Petsc data types---" begin
 
-  @fact PetscScalar --> Float32
-  @fact PetscReal --> Float32
-  @fact PetscInt --> Int32
+  @test ( PetscScalar )== Float32
+  @test ( PetscReal )== Float32
+  @test ( PetscInt )== Int32
 
 end
 
-FactCheck.exitstatus()
+

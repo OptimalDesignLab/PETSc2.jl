@@ -85,7 +85,7 @@ PetscView(x)
 
 # copy solution back to Julia
 x_copy = zeros(sys_size_local)
-idx = Array(0:2)
+idx = collect(0:2)
 
 PetscVecGetValues(x, sys_size_local, idx, x_copy)
 

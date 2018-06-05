@@ -5,6 +5,18 @@ fmt=.tar.gz
 
 echo "building PETSc in `pwd`"
 
+# find a python, preferably python2
+if which python2; then
+  pthn="python2"
+elif which python; then
+  pthn="python"
+else
+  echo "cannot locate python, which is required for Petsc configuration, exiting..."
+  exit 1
+fi
+
+echo "found python: " `which python`
+
 # get tarball if it is not present
 if [ ! -e ./$petsc_name$fmt ]
 then
@@ -35,7 +47,8 @@ unset PETSC_ARCH
 cd ./$petsc_name
 
 # regular (debug) version
-./configure $1 $2 $3 > fout
+echo $pthn configure $1 $2 $3
+$pthn configure $1 $2 $3 > fout
 
 # optimized version
 #./configure --with-debugging=0 COPTFLAGS='-O3 -march=native -mtrune=native' CXXOPTFLAGS='-O3 -march=native -mtune=native' FOPTFLAGS='-O3 -march=native -mtune=native' > fout
@@ -46,14 +59,14 @@ echo "finished configure"
 PETSC_ARCH=$(cat ./fout | grep "PETSC_ARCH:" | awk '{print $2}')
 
 # get the command printed out on the second to last line
-cmd=$(tail --lines=2 ./fout | head --lines=1)
+cmd=$(tail -n2 ./fout | head -n1)
 # execute the command
 
 $cmd MAKE_NP=4 > fout2
 
 echo "finished first command"
 
-cmd2=$(tail --lines=2 ./fout2 | head --lines=1)
+cmd2=$(tail -n2 ./fout2 | head -n1)
 # execute the command
 
 $cmd2 MAKE_NP=4 > fout3
@@ -85,10 +98,3 @@ echo "export PETSC_ARCH=$PETSC_ARCH" >> use_petsc.sh
 
 echo "$petsc_dir" > petsc_evars
 echo "$PETSC_ARCH" >> petsc_evars
-
-echo "pwd = "
-echo `pwd`
-echo "ls = "
-echo `ls`
-
-
