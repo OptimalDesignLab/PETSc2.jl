@@ -1,7 +1,7 @@
 # Constants
 
 ```@meta
-CurrentModule = PETSc
+CurrentModule = PETSc2
 ```
 
 Many PETSc constants and enums are available in the Julia wrappers.  The full
@@ -13,6 +13,6 @@ user's namespace.
 
 
 ```@autodocs
-Modules = [PETSc]
+Modules = [PETSc2]
 Pages = ["constants.jl"]
 ```

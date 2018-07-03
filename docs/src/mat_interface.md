@@ -1,7 +1,7 @@
 # Mat Interface
 
 ```@meta
-CurrentModule = PETSc
+CurrentModule = PETSc2
 ```
 This page describes an interface that is efficiently implemented for both
 `Array`, `SparseMatrixCSC`, and `Petscmat`.  In some cases, `Base` functions
@@ -11,6 +11,6 @@ generic programming.
 
 
 ```@autodocs
-Modules = [PETSc]
+Modules = [PETSc2]
 Pages = ["mat_interface.jl"]
 ```

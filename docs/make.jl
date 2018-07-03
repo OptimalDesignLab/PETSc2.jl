@@ -1,10 +1,11 @@
-using Documenter, PETSc
+using Documenter, PETSc2
 
 makedocs(
   format = :html,
   sitename = "Petsc2.jl",
   pages = [
     "index.md",
+    "build.md",
     "init.md",
     "vec.md",
     "vec_interface.md",

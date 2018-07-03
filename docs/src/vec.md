@@ -1,7 +1,7 @@
 # Vec Documentation
 
 ```@meta
-CurrentModule = PETSc
+CurrentModule = PETSc2
 ```
 
 This page wraps functions in PETSc's `Vec` API.  Consult the PETSc documentation
@@ -10,6 +10,6 @@ describes differences between the Julia wrappers and the PETSc documentation.
 
 
 ```@autodocs
-Modules = [PETSc]
+Modules = [PETSc2]
 Pages = ["vec.jl"]
 ```

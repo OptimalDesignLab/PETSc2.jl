@@ -21,7 +21,7 @@ applied to both PETSc and regular Julia arrays (including `SparseMatrixCSC`).
 ## First Part
 
 ```@contents
-Pages = ["vec.md", "mat.md", "constants.md", "ksp.md", "pc.md", "options.md", "error.md"]
+Pages = ["build.md", "vec.md", "mat.md", "constants.md", "ksp.md", "pc.md", "options.md", "error.md"]
 Depth = 1
 ```
 

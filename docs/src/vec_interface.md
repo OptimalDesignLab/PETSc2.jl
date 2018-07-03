@@ -10,10 +10,10 @@ when an operation is applied to either the local portion of a parallel
 vector or when an operation is applied uniformly across all processors.
 
 ```@meta
-CurrentModule = PETSc
+CurrentModule = PETSc2
 ```
 
 ```@autodocs
-Modules = [PETSc]
+Modules = [PETSc2]
 Pages = ["vec_interface.jl"]
 ```

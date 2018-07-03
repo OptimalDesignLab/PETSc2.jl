@@ -16,6 +16,6 @@ and they are run *after* `Base.atexit()` hooks, so it is possible `MPI` could be
 finalized before the `PETSc` objects have been freed.
 
 ```@autodocs
-Modules = [PETSc]
+Modules = [PETSc2]
 Pages = ["PETSc.jl"]
 ```
