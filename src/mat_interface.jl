@@ -365,7 +365,7 @@ function diagonal_shift!(A::AbstractMatrix, a::Number)
 
   nmax = min(size(A, 1), size(A, 2))
   @simd for i=1:nmax
-    A[i, i] += 1
+    A[i, i] += a
   end
 end
 #TODO; optimized implementation for SparseMatrixCSC

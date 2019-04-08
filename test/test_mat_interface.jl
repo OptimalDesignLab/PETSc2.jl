@@ -72,6 +72,20 @@ function test_mat_interface()
 
     @test isapprox( norm(vals_vec2 - b2), 0.0) atol=1e-14
 
+    # test diagonal_shift
+    set_values1!(A_p, idx, idy, vals.')
+    assembly_begin(A_p, MAT_FINAL_ASSEMBLY)
+    assembly_end(A_p, MAT_FINAL_ASSEMBLY)
+
+    set_values1!(x, idx, vals_vec)
+    alpha = 2
+    b2 = vals*vals_vec + alpha*vals_vec  # (alpha * I + A)*vals_vec
+    diagonal_shift!(A_p, alpha)
+    A_mul_B!(b, A_p, x)
+    get_values1!(b, idx, vals_vec2)
+    @test isapprox( norm(vals_vec2 - b2), 0.0) atol=1e-14
+   
+
     PetscDestroy(A_p)
     PetscDestroy(x)
     PetscDestroy(b)
@@ -113,5 +127,6 @@ function test_sizes(A)
 
   return nothing
 end
+
 
 test_mat_interface()
