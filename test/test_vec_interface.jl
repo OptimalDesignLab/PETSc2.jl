@@ -84,7 +84,17 @@ function test_vec_interface()
     get_values1!(x2_p, idx, vals2)
     @test isapprox( norm(vals2 - vals), 0.0) 
 
+    # diagonal_shift
+    x_j[:] = vals
+    alpha = 2
+    diagonal_shift!(x_j, alpha)
+    @test isapprox( norm(x_j - (vals + alpha)), 0.0) atol=1e-14
 
+    set_values1!(x_p, idx, vals, INSERT_VALUES)
+    assembly_begin(x_p); assembly_end(x_p)
+    diagonal_shift!(x_p, alpha)
+    get_values1!(x_p, idx, vals2)
+    @test isapprox( norm(vals2 - (vals + alpha)), 0.0) atol=1e-14
 
     PetscDestroy(x_p)
     PetscDestroy(x2_p)
