@@ -76,6 +76,8 @@ function test_mat_interface()
     set_values1!(A_p, idx, idy, vals.')
     assembly_begin(A_p, MAT_FINAL_ASSEMBLY)
     assembly_end(A_p, MAT_FINAL_ASSEMBLY)
+    A_j[:, :] = vals
+    A_s[:, :] = vals
 
     set_values1!(x, idx, vals_vec)
     alpha = 2
@@ -85,6 +87,15 @@ function test_mat_interface()
     get_values1!(b, idx, vals_vec2)
     @test isapprox( norm(vals_vec2 - b2), 0.0) atol=1e-14
    
+    diagonal_shift!(A_j, alpha)
+    b3 = A_j*vals_vec
+    @test isapprox( norm(vals_vec2 - b3), 0.0) atol=1e-14
+
+    diagonal_shift!(A_s, alpha)
+    b4 = A_s*vals_vec
+    @test isapprox( norm(vals_vec2 - b4), 0.0) atol=1e-14
+
+
 
     PetscDestroy(A_p)
     PetscDestroy(x)
