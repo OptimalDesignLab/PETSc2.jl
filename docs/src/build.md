@@ -1,6 +1,6 @@
 # Build System
 
-Installing `PETSc2` required:
+Installing `PETSc2` requires:
 
  * `MPI.jl`
  * `ArrayViews.jl`
@@ -9,7 +9,7 @@ Installing `PETSc2` required:
 
 ## Installing Other Dependencies
 
-`MPI.jl` will be install automatically if it is not already present.
+`MPI.jl` will be installed automatically if it is not already present.
 The release version of `MPI.jl` does not work, so the build system installs
 an older version. Before you install `MPI.jl`, you must have an MPI
 implementation installed.  Some systems come with MPI pre-installed, others
@@ -36,7 +36,7 @@ If you want the build system to build PETSc, you must first install
 Note that PETSc cannot link to the BLAS and LAPACK packaged with Julia.
 Instead, it links to the system BLAS and LAPACK.
 The efficiency of PETSc depends on the efficiency of BLAS, so it
-is recommended to obtain a high-quality BLAS (for example, if you machine has
+is recommended to obtain a high-quality BLAS (for example, if your machine has
 a vendor-provided BLAS implemention) and compile it from source
 on your machine.
 
@@ -48,8 +48,12 @@ error checking within PETSc that is useful for debugging, at the cost of
 some performance.  To build an optimized version of PETSc, see the `deps/install_petsc.sh` script.
 
 Note that arguments passed to the `install_petsc.sh` script are passed to
-PETSc's `configure` command.  If you want non-default options, running this
-script directly (not as part of the build system) is the recommended way to build PETSc.
+PETSc's `configure` command.  Also, the environment variable `JULIA_PETSC_CONFIG` is added to the arguments to `configure`, before the script arguments (so
+the script arguments will take precedence if an option is specified in both).
+Either of these methods can be used to customize the Petsc build.
+
+Note that you can use the `install_petsc.sh` script to install Petsc indendently
+of the Petsc.jl build system.
 After doing so, set the `PETSC_DIR` and `PETSC_ARCH` environment variables before
 running `build.jl` (see the next section).
 

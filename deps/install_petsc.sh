@@ -47,8 +47,8 @@ unset PETSC_ARCH
 cd ./$petsc_name
 
 # regular (debug) version
-echo $pthn configure $1 $2 $3
-$pthn configure $1 $2 $3 > fout
+echo $pthn configure $@
+$pthn configure $JULIA_PETSC_CONFIG $@ > fout
 
 # optimized version
 #./configure --with-debugging=0 COPTFLAGS='-O3 -march=native -mtrune=native' CXXOPTFLAGS='-O3 -march=native -mtune=native' FOPTFLAGS='-O3 -march=native -mtune=native' > fout
