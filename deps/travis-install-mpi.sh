@@ -39,18 +39,19 @@ case "$os" in
             sudo apt-get install -q gfortran mpich2 libmpich2-3 libmpich2-dev;;
           mpich3) set -x;
             sudo apt-get install -q gfortran libcr0 libcr-dev default-jdk;
-            wget $libnuma_url$libnuma_pkg;
-            sudo dpkg -i $libnuma_pkg;
-            wget $libhwlock_url$libhwlock_pkg;
-            sudo dpkg -i ./$libhwlock_pkg;
-            wget $hwlock_url$hwlock_pkg;
-            sudo dpkg -i ./$hwlock_pkg;
-            wget $libmpich_url$libmpich_pkg;
-            sudo dpkg -i ./$libmpich_pkg;
-            wget $url$pkg_name;
-            sudo dpkg -i ./$pkg_name;
-            wget $mpichdev_url$mpichdev_pkg;
-            sudo dpkg -i ./$mpichdev_pkg;;
+            sudo apt-get install -q mpich libmpich-dev libmpich12;; # mpich is mpich 3.2 on ubuntu 16.04
+#            wget $libnuma_url$libnuma_pkg;
+#            sudo dpkg -i $libnuma_pkg;
+#            wget $libhwlock_url$libhwlock_pkg;
+#            sudo dpkg -i ./$libhwlock_pkg;
+#            wget $hwlock_url$hwlock_pkg;
+#            sudo dpkg -i ./$hwlock_pkg;
+#            wget $libmpich_url$libmpich_pkg;
+#            sudo dpkg -i ./$libmpich_pkg;
+#            wget $url$pkg_name;
+#            sudo dpkg -i ./$pkg_name;
+#            wget $mpichdev_url$mpichdev_pkg;
+#            sudo dpkg -i ./$mpichdev_pkg;;
           openmpi) set -x;
             sudo apt-get install -q gfortran openmpi-bin openmpi-common libopenmpi-dev;;
           *)
