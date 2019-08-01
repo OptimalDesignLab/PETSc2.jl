@@ -48,7 +48,7 @@ cd ./$petsc_name
 
 # regular (debug) version
 echo $pthn configure $@
-$pthn configure $JULIA_PETSC_CONFIG $@ #> fout
+$pthn configure $JULIA_PETSC_CONFIG $@ | tee fout
 
 # optimized version
 #./configure --with-debugging=0 COPTFLAGS='-O3 -march=native -mtrune=native' CXXOPTFLAGS='-O3 -march=native -mtune=native' FOPTFLAGS='-O3 -march=native -mtune=native' > fout
@@ -62,14 +62,14 @@ PETSC_ARCH=$(cat ./fout | grep "PETSC_ARCH:" | awk '{print $2}')
 cmd=$(tail -n2 ./fout | head -n1)
 # execute the command
 
-$cmd MAKE_NP=4 #> fout2
+$cmd MAKE_NP=4 | tee fout2
 
 echo "finished first command"
 
 cmd2=$(tail -n2 ./fout2 | head -n1)
 # execute the command
 
-$cmd2 MAKE_NP=4 #> fout3
+$cmd2 MAKE_NP=4  | tee  fout3
 
 
 echo "finished second command"
