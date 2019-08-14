@@ -268,7 +268,7 @@ end
 function MatTranspose(A::PetscMat; inplace::Bool=false, mat_initialized=false)
   if inplace
     B = Ref{Ptr{Void}}(A.pobj)
-    reuse = MAT_REUSE_MATRIX
+    reuse = MAT_INPLACE_MATRIX
   else
     B = Ref{Ptr{Void}}(C_NULL)
     reuse = MAT_INITIAL_MATRIX

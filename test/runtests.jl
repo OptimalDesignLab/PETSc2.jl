@@ -143,6 +143,7 @@ include("test_mat.jl")
 include("test_mat_interface.jl")
 include("test_ksp.jl")
 include("test_options.jl")
+
 #include("test_prealloc.jl")
 
 PetscFinalize()

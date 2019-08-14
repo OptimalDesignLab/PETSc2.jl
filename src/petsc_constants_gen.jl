@@ -391,4 +391,5 @@ global const MatReuse = Int32
 global const MAT_INITIAL_MATRIX = Int32( 0 )
 global const MAT_REUSE_MATRIX = Int32( 1 )
 global const MAT_IGNORE_MATRIX = Int32( 2 )
+global const MAT_INPLACE_MATRIX = Int32( 3 )
 
