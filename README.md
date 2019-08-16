@@ -46,6 +46,7 @@ Even when running serially, the MPI.jl package must be installed.
  * v0.2: tag after upgrading from Julia 0.4 to Julia 0.6
  * v0.3: update docs
  * v0.4: update build system to use environment variables too
+ * v0.5: update to Petsc 3.9.4 (for Travis CI)
 
 [![Build Status](https://travis-ci.org/OptimalDesignLab/PETSc2.jl.svg?branch=master)](https://travis-ci.org/OptimalDesignLab/PETSc2.jl)
 [![](https://img.shields.io/badge/docs-latest-blue.svg)](https://OptimalDesignLab.github.io/PETSc2.jl/latest)
