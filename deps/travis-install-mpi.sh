@@ -39,7 +39,7 @@ case "$os" in
             sudo apt-get install -q gfortran mpich2 libmpich2-3 libmpich2-dev;;
           mpich3) set -x;
             sudo apt-get install -q gfortran libcr0 libcr-dev default-jdk;
-            sudo apt-get install -q mpich libmpich-dev libmpich12;; # mpich is mpich 3.2 on ubuntu 16.04
+            sudo apt-get install -q mpich libmpich-dev libmpich12;;  # mpich is mpich 3.2 on ubuntu 16.04
 #            wget $libnuma_url$libnuma_pkg;
 #            sudo dpkg -i $libnuma_pkg;
 #            wget $libhwlock_url$libhwlock_pkg;
