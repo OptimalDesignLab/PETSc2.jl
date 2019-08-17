@@ -51,8 +51,12 @@ else
 end
 
 
-
+println("ENV[PETSC_DIR] = ", get(ENV, "PETSC_DIR", "not found"))
+println("ENV[PETSC_ARCH] = ", get(ENV, "PETSC_ARCH", "not found"))
 
 if !haskey(ENV, "PETSC_DIR")  && !haskey(ENV, "PETSC_ARCH")
- run(`./install_petsc.sh`)
+  println("Building Petsc")
+  run(`./install_petsc.sh`)
+else
+  println("not building Petsc")
 end 
